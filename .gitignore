@@ -1,0 +1,564 @@
+# ============================================================
+# GreenTools - Root .gitignore
+# Laravel + PHP + React + Vite + Node.js + pnpm/npm/yarn
+# ============================================================
+
+
+# ============================================================
+# ENVIRONMENT / SECRETS
+# ============================================================
+
+.env
+.env.*
+!.env.example
+!.env.example.*
+!.env.dist
+!.env.dist.*
+
+# Local secret/config files
+*.secret
+*.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ============================================================
+# NODE.JS / JAVASCRIPT / TYPESCRIPT
+# ============================================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# Package manager temporary files
+.npm/
+.yarn/
+.pnpm-store/
+.pnpm-debug.log
+
+# Build output
+dist/
+**/dist/
+
+build/
+**/build/
+
+out/
+**/out/
+
+# Vite
+.vite/
+**/.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+**/coverage/
+.nyc_output/
+
+# Storybook
+storybook-static/
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+
+# ============================================================
+# LARAVEL / PHP
+# ============================================================
+
+# Laravel environment
+.env
+.env.*
+!.env.example
+
+# Laravel storage
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+
+# Keep Laravel storage structure
+!storage/logs/.gitignore
+!storage/framework/cache/.gitignore
+!storage/framework/sessions/.gitignore
+!storage/framework/views/.gitignore
+!storage/framework/testing/.gitignore
+
+# Laravel generated/cache files
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Laravel public storage symlink
+public/storage
+
+# PHP dependencies
+vendor/
+**/vendor/
+
+# Composer
+composer.phar
+
+# PHPUnit
+.phpunit.result.cache
+
+# Laravel Telescope
+.phpunit.result.cache
+
+# Laravel Pint
+.php-cs-fixer.cache
+.php-cs-fixer.php
+
+# Laravel Herd / Valet
+/.herd/
+/.valet/
+
+
+# ============================================================
+# DATABASE
+# ============================================================
+
+# SQLite databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Laravel default SQLite
+database/database.sqlite
+database/database.sqlite-journal
+
+# Database dumps / backups
+*.sql
+*.sql.gz
+*.dump
+*.bak
+
+# IMPORTANT:
+# If you intentionally want to version database seed dumps,
+# remove the corresponding rule above.
+
+
+# ============================================================
+# LOGS
+# ============================================================
+
+*.log
+logs/
+**/logs/
+
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Laravel logs are covered above
+
+
+# ============================================================
+# CACHE / TEMPORARY FILES
+# ============================================================
+
+.cache/
+**/.cache/
+
+.tmp/
+**/.tmp/
+
+temp/
+**/temp/
+
+tmp/
+**/tmp/
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*.swn
+
+# OS/editor generated backup files
+*~
+*.bak
+*.orig
+
+
+# ============================================================
+# IDE / EDITOR
+# ============================================================
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# If you don't want ANY VS Code local config tracked,
+# replace the section above with:
+# .vscode/
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+*.un~
+Session.vim
+.netrwhist
+
+
+# ============================================================
+# WINDOWS
+# ============================================================
+
+# Windows Explorer
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+
+# Windows desktop configuration
+Desktop.ini
+
+# Windows recycle bin
+$RECYCLE.BIN/
+
+# Windows search
+*.stackdump
+
+
+# ============================================================
+# MACOS
+# ============================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS metadata
+._*
+
+# Spotlight
+.Spotlight-V100
+
+# Trash
+.Trashes
+
+# ============================================================
+# LINUX
+# ============================================================
+
+*~
+.fuse_hidden*
+.directory
+
+
+# ============================================================
+# DOCKER
+# ============================================================
+
+# Local Docker overrides
+docker-compose.override.yml
+docker-compose.local.yml
+compose.override.yml
+compose.local.yml
+
+# Docker environment files
+.env.docker
+.env.docker.local
+
+# Docker volumes accidentally mounted locally
+docker-data/
+docker-volumes/
+**/docker-data/
+**/docker-volumes/
+
+
+# ============================================================
+# TESTING
+# ============================================================
+
+.phpunit.result.cache
+.phpunit.cache/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jest
+.jest/
+jest-results/
+test-results/
+
+# Playwright
+playwright-report/
+blob-report/
+playwright/.cache/
+
+
+# ============================================================
+# PYTHON (IF USED IN ANY SUBPROJECT)
+# ============================================================
+
+__pycache__/
+**/__pycache__/
+
+*.py[cod]
+*$py.class
+
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+# ============================================================
+# GENERATED FILES
+# ============================================================
+
+# Generic generated files
+generated/
+**/generated/
+
+generated-files/
+**/generated-files/
+
+# Temporary exports
+exports/
+**/exports/
+
+
+# ============================================================
+# FRONTEND / VITE / REACT
+# ============================================================
+
+# Vite local environment files
+.vite/
+
+# Vite cache
+node_modules/.vite/
+
+# React build
+react-build/
+.next/
+.nuxt/
+
+# Static generated output
+storybook-static/
+
+
+# ============================================================
+# TURBO / MONOREPO
+# ============================================================
+
+.turbo/
+.nx/
+.parcel-cache/
+
+# Turborepo
+**/.turbo/
+
+
+# ============================================================
+# PNPM
+# ============================================================
+
+.pnpm-debug.log
+.pnpm-store/
+
+# Do NOT ignore pnpm-lock.yaml
+# It SHOULD be committed.
+
+
+# ============================================================
+# NPM / YARN
+# ============================================================
+
+.npmrc.local
+.yarnrc.local
+
+# Do NOT ignore:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+#
+# Lock files SHOULD normally be committed.
+
+
+# ============================================================
+# CREDENTIALS / CERTIFICATES
+# ============================================================
+
+# Private keys
+*.private
+*.privatekey
+*.priv
+
+# Certificates
+*.crt
+*.cer
+*.der
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ecdsa
+id_ecdsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Cloud credentials
+.aws/
+.gcloud/
+.azure/
+
+# Generic credentials
+credentials.json
+credentials.yml
+credentials.yaml
+service-account.json
+serviceAccount.json
+
+
+# ============================================================
+# API / LOCAL CONFIG
+# ============================================================
+
+config.local.*
+config.*.local.*
+
+settings.local.*
+settings.*.local.*
+
+secrets/
+**/secrets/
+
+
+# ============================================================
+# BACKUP FILES
+# ============================================================
+
+*.backup
+*.backup.*
+*.old
+*.save
+*.orig
+
+backup/
+backups/
+**/backup/
+**/backups/
+
+
+# ============================================================
+# OS / APPLICATION TEMP FILES
+# ============================================================
+
+*.pid
+*.pid.lock
+*.seed
+
+npm-cache/
+yarn-cache/
+
+# Crash dumps
+*.dmp
+*.dump
+
+
+# ============================================================
+# OPTIONAL: LARGE MEDIA / LOCAL ASSETS
+# ============================================================
+
+# Uncomment these ONLY if these folders contain local/generated
+# media that should NOT be stored in Git.
+
+# public/uploads/
+# public/media/
+# storage/app/public/
+# uploads/
+# media/
+
+
+# ============================================================
+# PROJECT-SPECIFIC LOCAL DIRECTORIES
+# ============================================================
+
+# Local development data
+.local/
+**/.local/
+
+# Local tooling
+.tools/
+**/.tools/
+
+
+# ============================================================
+# NEVER COMMIT THESE
+# ============================================================
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Build directories
+dist/
+build/
+
+# Runtime/cache
+.cache/
+storage/logs/
+bootstrap/cache/
+
+
+# ============================================================
+# END
+# ============================================================

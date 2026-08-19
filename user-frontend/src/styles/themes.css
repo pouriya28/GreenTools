@@ -1,0 +1,155 @@
+/* src/styles/themes.css */
+
+/* =====================
+   Light Theme (Default)
+===================== */
+:root {
+  /* Brand */
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --primary-glow: rgba(22, 163, 74, 0);
+
+  /* Background */
+  --background: #f8fafc;
+  --surface: #ffffff;
+
+  /* Text */
+  --text: #111827;
+  --text-secondary: #374151;
+  --muted: #64748b;
+
+  /* Border */
+  --border: #e5e7eb;
+
+  /* Status */
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --error: #dc2626;
+  --info: #0284c7;
+}
+
+/* =====================
+   Dark Theme
+===================== */
+[data-theme="dark"],
+:root[data-theme="dark"] {
+  /* Brand */
+  --primary: #22c55e;
+  --primary-hover: #4ade80;
+  --primary-glow: rgba(34, 197, 94, 0.35);
+
+  /* Background */
+  --background: #020617;
+  --surface: #0f172a;
+
+  /* Text */
+  --text: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --muted: #94a3b8;
+
+  /* Border */
+  --border: #1e293b;
+
+  /* Status */
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #38bdf8;
+}
+
+/* =====================
+   Neon Green Theme
+===================== */
+[data-theme="neon"],
+:root[data-theme="neon"] {
+  /* Brand */
+  --primary: #39ff14;
+  --primary-hover: #00ff66;
+  --primary-glow: rgba(57, 255, 20, 0.65);
+
+  /* Background */
+  --background: #050505;
+  --surface: #101010;
+
+  /* Text */
+  --text: #ffffff;
+  --text-secondary: #d4d4d4;
+  --muted: #a3a3a3;
+
+  /* Border */
+  --border: #1f1f1f;
+
+  /* Status */
+  --success: #00ff66;
+  --warning: #ffe600;
+  --error: #ff3131;
+  --info: #00e5ff;
+}
+
+/* =====================
+   Tailwind v4 Theme Mapping
+===================== */
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-muted: var(--muted);
+
+  --color-border: var(--border);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+}
+
+/* Utilities */
+[data-theme="neon"] .neon-text {
+  color: var(--primary);
+  text-shadow:
+    0 0 4px var(--primary-glow),
+    0 0 12px var(--primary-glow),
+    0 0 24px var(--primary-glow);
+}
+
+[data-theme="neon"] .neon-border {
+  border: 1px solid var(--primary);
+  box-shadow:
+    0 0 6px var(--primary-glow),
+    0 0 18px var(--primary-glow),
+    inset 0 0 6px var(--primary-glow);
+}
+
+[data-theme="neon"] .neon-glow {
+  box-shadow:
+    0 0 10px var(--primary-glow),
+    0 0 30px var(--primary-glow),
+    0 0 60px var(--primary-glow);
+  transition: box-shadow 0.3s ease;
+}
+/* انیمیشن حرکت نور نئونی روی ذوزنقه‌ها */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* انیمیشن چرخش خط نور نئونی روی لبه SVG */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -200;
+  }
+}
+/* انیمیشن چرخش لیزر نئونی روی خطوط SVG */
+@keyframes laser {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -180;
+  }
+}

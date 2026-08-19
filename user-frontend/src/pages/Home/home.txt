@@ -1,0 +1,432 @@
+// src/pages/Home/Home.tsx
+import { createRef, useRef, useState } from "react";
+import { Hero } from "./components/Hero";
+import { ScrollSection } from "./components/ScrollSection";
+import { useHomeScrollAnimation } from "./hooks/useHomeScrollAnimation";
+import { homeContent } from "./data/homeContent";
+
+export function Home() {
+  const heroRef = useRef<HTMLElement>(null);
+  const shapesRef = useRef<HTMLDivElement>(null);
+
+  // چون سکشن‌ها فعلاً هاردکد و ثابت هستن، این الگو برای ساخت رفرنس‌های چندتایی مشکلی نداره
+  const sectionRefs = useRef(
+    homeContent.sections.map(() => createRef<HTMLElement>())
+  ).current;
+
+  // ایندکس سکشنی که الان وسط دید کاربره - برای سینک شدن محتوای ذوزنقه‌ها
+  const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+
+  useHomeScrollAnimation({
+    heroRef,
+    shapesRef,
+    sectionRefs,
+    onSectionChange: setActiveSectionIndex,
+  });
+
+  return (
+    <main className="w-full overflow-x-hidden bg-background">
+      <Hero
+        ref={heroRef}
+        shapesRef={shapesRef}
+        activeSectionIndex={activeSectionIndex}
+      />
+
+      {homeContent.sections.map((section, index) => (
+        <ScrollSection
+          key={section.id}
+          ref={sectionRefs[index]}
+          section={section}
+          index={index}
+        />
+      ))}
+    </main>
+  );
+}
+// src/pages/Home/hooks/useHomeScrollAnimation.ts
+import { useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+
+gsap.registerPlugin(ScrollTrigger);
+
+interface UseHomeScrollAnimationParams {
+  heroRef: React.RefObject<HTMLElement>;
+  shapesRef: React.RefObject<HTMLDivElement>;
+  sectionRefs: React.RefObject<HTMLElement>[];
+  onSectionChange: (index: number) => void;
+}
+
+export function useHomeScrollAnimation({
+  heroRef,
+  shapesRef,
+  sectionRefs,
+  onSectionChange,
+}: UseHomeScrollAnimationParams) {
+  
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+    });
+    
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(min-width: 768px)", () => {
+        if (!heroRef.current || !shapesRef.current) return;
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: "top top",
+            end: "+=100%", // اسکرول کوتاه‌تر = انیمیشن سریع‌تر
+            pin: true,
+            scrub: 0.5, // واکنش سریع‌تر به اسکرول موس
+          },
+        });
+
+        const firstShapeInner = shapesRef.current.querySelector(".shape-0");
+
+        // مرحله ۱: چرخش کل مثلث (کانتینر والد) به اندازه ۱۲۰ درجه
+        tl.to(shapesRef.current, {
+          rotation: -120, 
+          duration: 1.5,
+          ease: "power1.inOut",
+        }, 0)
+        // همزمان: چرخش معکوس کارت‌ها تا متن‌ها کج نشن و صاف بمونن
+        .to(".shape-wrapper", {
+          rotation: 120, 
+          duration: 1.5,
+          ease: "power1.inOut",
+        }, 0)
+        
+        // مرحله ۲: زوم شدن کارت اول (که حالا اومده پایین) و محو شدن بقیه
+        .to(firstShapeInner, {
+          scale: 6, // بزرگ شدن برای تبدیل شدن به بک‌گراند سکشن بعدی
+          opacity: 0.15,
+          duration: 1.5,
+          ease: "power2.inOut"
+        }, 0.5) 
+        .to(".shape-1, .shape-2", {
+          opacity: 0,
+          scale: 0.5,
+          duration: 1
+        }, 0.5); 
+      });
+
+      sectionRefs.forEach((ref, index) => {
+        if (!ref.current) return;
+        ScrollTrigger.create({
+          trigger: ref.current,
+          start: "top 60%",
+          end: "bottom 60%",
+          onEnter: () => onSectionChange(index),
+          onEnterBack: () => onSectionChange(index),
+        });
+      });
+    });
+
+    return () => {
+      ctx.revert();
+      lenis.destroy();
+    };
+  }, [heroRef, shapesRef, sectionRefs, onSectionChange]);
+}
+// src/pages/Home/data/homeContent.ts
+
+export interface HomeSection {
+  id: string;
+  title: string;
+  summary: string; // متن خلاصه‌ای که داخل ذوزنقه‌ها هم نشون داده میشه
+}
+
+export const homeContent = {
+  hero: {
+    title: "فروشگاهی نو، تجربه‌ای نو",
+    description:
+      "جدیدترین محصولات با بهترین کیفیت و ارسال سریع، همین حالا کشفشون کن.",
+    ctaText: "مشاهده محصولات",
+  },
+
+  // هر آیتم اینجا هم یک سکشن مستقل توی صفحه‌ست و هم محتوای یکی از ذوزنقه‌های هیرو
+  sections: [
+    {
+      id: "features",
+      title: "چرا فروشگاه ما؟",
+      summary:
+        "ارسال سریع، ضمانت اصالت کالا و پشتیبانی ۲۴ ساعته در کنار شما هستیم.",
+    },
+    {
+      id: "categories",
+      title: "دسته‌بندی‌های پرطرفدار",
+      summary: "از پوشاک و کفش تا لوازم دیجیتال، همه‌چیز رو یک‌جا پیدا کن.",
+    },
+    {
+      id: "featured",
+      title: "محصولات ویژه",
+      summary: "جدیدترین و پرفروش‌ترین محصولات فروشگاه رو از دست نده.",
+    },
+    {
+      id: "testimonials",
+      title: "نظر مشتریان",
+      summary: "هزاران خریدار راضی، تجربه خرید امن و مطمئن رو با ما داشتن.",
+    },
+  ] as HomeSection[],
+};
+// src/pages/Home/components/ScrollSection/ScrollSection.tsx
+import { forwardRef } from "react";
+import type { HomeSection } from "../../data/homeContent";
+
+interface ScrollSectionProps {
+  section: HomeSection;
+  index: number;
+}
+
+// هر سکشن محتوایی زیر هیرو - رفرنسش به GSAP داده میشه
+// تا وقتی وسط صفحه قرار گرفت، به عنوان "سکشن فعال" شناسایی بشه
+export const ScrollSection = forwardRef<HTMLElement, ScrollSectionProps>(
+  ({ section, index }, ref) => {
+    const isEven = index % 2 === 0;
+
+    return (
+      <section
+        ref={ref}
+        data-section-id={section.id}
+        className={`
+          w-full min-h-[70vh] flex items-center
+          px-5 sm:px-10 md:px-16 py-16
+          ${isEven ? "bg-background" : "bg-surface"}
+        `}
+      >
+        <div className="max-w-2xl mx-auto text-center flex flex-col gap-4">
+          <h2 className="text-text text-2xl sm:text-3xl font-bold">
+            {section.title}
+          </h2>
+          <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
+            {section.summary}
+          </p>
+        </div>
+      </section>
+    );
+  }
+);
+
+ScrollSection.displayName = "ScrollSection";
+// src/pages/Home/components/ScrollSection/index.ts
+export { ScrollSection } from "./ScrollSection";
+// src/pages/Home/components/Hero/TrapezoidShape.tsx
+interface TrapezoidShapeProps {
+  title: string;
+  summary: string;
+  active?: boolean;
+  index: number;
+}
+
+export function TrapezoidShape({
+  title,
+  summary,
+  active = false,
+  index,
+}: TrapezoidShapeProps) {
+  // شکل جدید هندسی مدرن با گوشه‌های برش خورده (Tech-Card)
+  const POLYGON_CLIP = "polygon(8% 0%, 100% 0%, 100% 80%, 92% 100%, 0% 100%, 0% 20%)";
+  const SVG_POINTS = "8,0 100,0 100,80 92,100 0,100 0,20";
+
+  return (
+    <div className={`shape-${index} relative group select-none`}>
+      {/* لایه SVG */}
+      <svg
+        className="absolute -inset-[1px] w-[calc(100%+2px)] h-[calc(100%+2px)] pointer-events-none z-20 overflow-visible"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id={`laser-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#22c55e" stopOpacity="0" />
+            <stop offset="50%" stopColor="#4ade80" stopOpacity="1" />
+            <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* نوار پایه */}
+        <polygon
+          points={SVG_POINTS}
+          fill="none"
+          stroke="var(--primary)"
+          strokeWidth="0.55"
+          className="opacity-65"
+        />
+
+        {/* لیزر متحرک */}
+        <polygon
+          points={SVG_POINTS}
+          fill="none"
+          stroke={`url(#laser-grad-${index})`}
+          strokeWidth="1.25"
+          strokeDasharray="20 170"
+          className="animate-[laser_3.5s_linear_infinite]"
+          style={{ filter: "drop-shadow(0 0 6px #22c55e) drop-shadow(0 0 12px #22c55e)" }}
+        />
+      </svg>
+
+      {/* کارت اصلی با کلیپ‌پث جدید */}
+      <div
+        className={`
+          relative 
+          w-[380px] lg:w-[480px] xl:w-[560px] 2xl:w-[640px]
+          aspect-[16/9]
+          bg-surface/90 backdrop-blur-2xl
+          flex flex-col justify-center items-center 
+          p-8 lg:p-10 xl:p-12
+          transition-all duration-500 z-10
+          ${
+            active
+              ? "opacity-100 scale-100"
+              : "opacity-55 scale-95 hover:opacity-80"
+          }
+        `}
+        style={{ clipPath: POLYGON_CLIP }}
+      >
+        <div className="text-center space-y-3 max-w-[80%]">
+          <h3 className="text-primary text-xl lg:text-2xl xl:text-3xl font-black tracking-wider neon-text">
+            {title}
+          </h3>
+          <p className="text-text-secondary text-sm lg:text-base leading-relaxed line-clamp-3 font-medium">
+            {summary}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+// src/pages/Home/components/Hero/HeroText.tsx
+interface HeroTextProps {
+  title: string;
+  description: string;
+  // ctaText حذف شد
+}
+
+export function HeroText({ title, description }: HeroTextProps) {
+  return (
+    <div className="flex flex-col gap-5 max-w-lg text-right shrink-0">
+      <h1 className="text-text text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+        {title}
+      </h1>
+      <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
+        {description}
+      </p>
+    </div>
+  );
+}
+// src/pages/Home/components/Hero/HeroShapes.tsx
+import { forwardRef } from "react";
+import { TrapezoidShape } from "./TrapezoidShape";
+import type { HomeSection } from "../../data/homeContent";
+
+interface HeroShapesProps {
+  sections: HomeSection[];
+  activeIndex: number;
+}
+
+// مختصات دقیق برای ایجاد یک مثلث بزرگ که راس تیز آن سمت راست است
+const SHAPE_POSITIONS = [
+  { top: "0%", left: "0%", transform: "translate(0%, -10%)" },        // راس ۱: بالا چپ
+  { top: "50%", left: "100%", transform: "translate(-60%, -50%)" },   // راس ۲: وسط راست (بیرون‌زده)
+  { top: "100%", left: "0%", transform: "translate(0%, -90%)" },      // راس ۳: پایین چپ
+];
+
+export const HeroShapes = forwardRef<HTMLDivElement, HeroShapesProps>(
+  ({ sections, activeIndex }, ref) => {
+    const getSection = (offset: number) => {
+      const index = (activeIndex + offset) % sections.length;
+      return sections[index];
+    };
+
+    return (
+      <div className="hidden md:flex relative w-full h-[700px] lg:h-[800px] items-center justify-center">
+        {/* کانتینر اصلی که انیمیشن چرخش روی این اعمال میشه */}
+        <div
+          ref={ref}
+          className="relative w-[450px] lg:w-[550px] h-[600px] lg:h-[700px]"
+        >
+          {SHAPE_POSITIONS.map((pos, i) => {
+            const section = getSection(i);
+            return (
+              <div
+                key={`${section.id}-${i}`}
+                className="shape-wrapper absolute origin-center transition-all duration-300"
+                style={{
+                  top: pos.top,
+                  left: pos.left,
+                  transform: pos.transform,
+                }}
+              >
+                <TrapezoidShape
+                  index={i}
+                  title={section.title}
+                  summary={section.summary}
+                  active={i === 0}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+);
+
+HeroShapes.displayName = "HeroShapes";
+// src/pages/Home/components/Hero/Hero.tsx
+import { forwardRef } from "react";
+import { HeroText } from "./HeroText";
+import { HeroShapes } from "./HeroShapes";
+import { homeContent } from "../../data/homeContent";
+
+interface HeroProps {
+  shapesRef: React.RefObject<HTMLDivElement>;
+  activeSectionIndex: number;
+}
+
+export const Hero = forwardRef<HTMLElement, HeroProps>(
+  ({ shapesRef, activeSectionIndex }, ref) => {
+    return (
+      <section
+        ref={ref}
+        className="
+          relative w-full min-h-[50vh] md:min-h-screen
+          flex flex-col-reverse md:flex-row-reverse
+          items-center justify-between
+          gap-8 md:gap-10 px-6 sm:px-10 md:px-14 py-16 md:py-12
+          bg-background overflow-hidden
+        "
+      >
+        <div className="w-full md:w-[32%] lg:w-[30%] shrink-0 z-10 text-center md:text-right">
+          <HeroText
+            title={homeContent.hero.title}
+            description={homeContent.hero.description}
+          />
+        </div>
+
+        {/* مخفی کردن کامل کانتینر در موبایل برای رفع مشکل فضای خالی */}
+        <div className="hidden md:flex w-full md:w-[68%] lg:w-[70%] justify-center md:justify-start">
+          <HeroShapes
+            ref={shapesRef}
+            sections={homeContent.sections}
+            activeIndex={activeSectionIndex}
+          />
+        </div>
+      </section>
+    );
+  }
+);
+
+Hero.displayName = "Hero";
