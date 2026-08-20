@@ -55,7 +55,7 @@ export default function PricingPage() {
         </div>
       ) : isError ? (
         <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {getApiErrorMessage(error, "دریافت پیشنهادهای قیمت ناموفق بود."}
+          {getApiErrorMessage(error, "دریافت پیشنهادهای قیمت ناموفق بود.")}
         </div>
       ) : (
         <PriceProposalTable proposals={proposals} />
