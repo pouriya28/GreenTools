@@ -6,6 +6,7 @@ import CategoriesPage from "@/features/categories/pages/CategoriesPage"
 import TrashedCategoriesPage from "@/features/categories/pages/Trashedcategoriespage"
 import ProductsPage from "@/features/products/pages/ProductsPage"
 import TrashedProductsPage from "@/features/products/pages/TrashedProductsPage"
+import PricingPage from "@/features/pricing/pages/PricingPage"
 
 function Placeholder({ title }: { title: string }) {
   return <div className="text-xl font-semibold text-text-1">{title}</div>
@@ -25,6 +26,12 @@ export const router = createBrowserRouter([
           { path: "categories/trash", element: <TrashedCategoriesPage /> },
           { path: "products", element: <ProductsPage /> },
           { path: "products/trash", element: <TrashedProductsPage /> },
+          // بخش مدیریت نرخ ارز/قیمت‌ها (override دستی + بررسی پیشنهادها) —
+          // این مسیر هم زیر ProtectedRoute است، پس فقط کاربران authenticated بهش دسترسی
+          // دارند؛ مجوزه‌های دقیق‌تر (prices.review / prices.manual_override) همون‌طور که بک‌اند
+          // پیاده‌سازی شده، روی هر درخواست API به صورت 403 اعمال می‌شوند (AuthUser فعلاً فقط
+          // id/name/type رو دارد، لیست permission جزو‌جزی ندارد).
+          { path: "pricing", element: <PricingPage /> },
         ],
       },
     ],
