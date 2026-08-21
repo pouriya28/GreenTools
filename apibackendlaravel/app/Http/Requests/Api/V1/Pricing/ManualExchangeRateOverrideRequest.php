@@ -15,8 +15,11 @@ class ManualExchangeRateOverrideRequest extends FormRequest
 
     public function authorize(): bool
     {
-        // permission کاملاً مجزا از prices.review/products.*  طبق تصمیم تایید‌شده.
-        return $this->user()?->can('prices.manual_override') ?? false;
+        // Bug fix / معماری جدید: بخش «مدیریت نرخ ارز» از «بررسی/تایید قیمت
+        // محصولات» (prices.review) کاملاً جدا شد - permission مخصوص خودش را دارد
+        // (قبلاً prices.manual_override). مطابق تصمیم تایید‌شده برای جداسازی کامل معماری
+        // نرخ ارز از قیمت‌گذاری محصولات.
+        return $this->user()?->can('exchange-rates.manage') ?? false;
     }
 
     public function rules(): array

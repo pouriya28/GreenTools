@@ -83,6 +83,17 @@ class PriceProposalService
 
             $product->update(['price_toman' => $effectivePrice]);
 
+            // Bug fix: nothing previously transitioned ExchangeRate::status to
+            // 'applied' after a proposal was approved, so ExchangeRate::applied()
+            // (used by RefreshExchangeRateJob to find the last applied rate for
+            // anomaly-percent comparisons) always returned null. Approving a
+            // proposal is exactly the moment this rate takes effect, so mark it
+            // applied here. Guarded so re-approving other proposals in the same
+            // batch does not re-fire the update.
+            if ($proposal->exchangeRate->status !== 'applied') {
+                $proposal->exchangeRate->update(['status' => 'applied']);
+            }
+
             $proposal->update([
                 'status' => PriceProposalStatus::Approved,
                 'reviewed_by' => $adminId,
