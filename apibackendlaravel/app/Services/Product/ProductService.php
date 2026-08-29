@@ -19,6 +19,7 @@ class ProductService
         private SlugUniquenessResolver $slugResolver,
         private ProductMediaService $mediaService,
         private PricingService $pricingService,
+        private SkuGenerator $skuGenerator,
     ) {}
 
     public function create(array $data, int $userId): Product
@@ -26,16 +27,20 @@ class ProductService
         return DB::transaction(function () use ($data, $userId) {
             $meta = $data['meta'] ?? null;
             $tagIds = $data['tag_ids'] ?? [];
-            $productData = Arr::except($data, ['meta', 'tag_ids']);
 
+            $productData = Arr::except($data, ['meta', 'tag_ids']);
             $productData['slug'] = $this->slugResolver->resolve($data['name'], Product::class);
             $productData['description'] = $this->sanitizeDescription($productData['description'] ?? null);
             $productData['short_description'] = $this->sanitizeDescription($productData['short_description'] ?? null);
             $productData['created_by'] = $userId;
             $productData['updated_by'] = $userId;
 
-            $rate = ExchangeRate::applied()->latest('fetched_at')->first();
+            // SKU الان اختیاریه (StoreProductRequest) - اگه ادمین وارد نکرده باشه، خودکار می‌سازیم.
+            if (empty($productData['sku'])) {
+                $productData['sku'] = $this->skuGenerator->generate((int) $productData['category_id']);
+            }
 
+            $rate = ExchangeRate::applied()->latest('fetched_at')->first();
             if (! $rate) {
                 // بدون نرخ دلار، محصول با قیمت صفر منتشر می‌شد که یعنی عملاً
                 // مجانی رو سایت می‌رفت — به‌جای پیش‌فرض ناامن، صریح رد می‌کنیم.
@@ -44,15 +49,22 @@ class ProductService
                 ]);
             }
 
-            $productData['price_toman'] = (int) round($productData['price_usd'] * (float) $rate->rate);
+            $priceToman = (int) round($productData['price_usd'] * (float) $rate->rate);
 
             $this->pricingService->assertDiscountValid(
                 $productData['discount_type'] ?? null,
                 $productData['discount_value'] ?? null,
-                $productData['price_toman']
+                $priceToman
             );
 
             $product = Product::create($productData);
+
+            // Bug fix: price_toman عمداً در $fillable نیست (کامنت روی مدل)، پس اینجا
+            // که قبلاً از طریق همون آرایه‌ی create() ست می‌شد، mass assignment بی‌صدا
+            // حذفش می‌کرد و INSERT با ستون NOT NULL خالی رد می‌شد. با forceFill+save
+            // صریح و جدا از mass assignment ست می‌کنیم.
+            $product->forceFill(['price_toman' => $priceToman])->save();
+
             $product->syncMeta($meta);
             $product->syncTags($tagIds);
 
@@ -65,6 +77,7 @@ class ProductService
         return DB::transaction(function () use ($product, $data, $userId) {
             $meta = $data['meta'] ?? null;
             $tagIds = $data['tag_ids'] ?? null;
+
             $productData = Arr::except($data, ['meta', 'tag_ids']);
 
             if (isset($productData['name']) && $productData['name'] !== $product->name) {
@@ -74,6 +87,7 @@ class ProductService
             if (array_key_exists('description', $productData)) {
                 $productData['description'] = $this->sanitizeDescription($productData['description']);
             }
+
             if (array_key_exists('short_description', $productData)) {
                 $productData['short_description'] = $this->sanitizeDescription($productData['short_description']);
             }
@@ -86,13 +100,11 @@ class ProductService
             // فقط برای نرخ دلار API خارجی معناداره.
             if (isset($productData['price_usd']) && (float) $productData['price_usd'] !== (float) $product->price_usd) {
                 $rate = ExchangeRate::applied()->latest('fetched_at')->first();
-
                 if (! $rate) {
                     throw ValidationException::withMessages([
                         'price_usd' => 'نرخ دلار هنوز ثبت نشده؛ امکان محاسبه‌ی قیمت تومانی نیست.',
                     ]);
                 }
-
                 $productData['price_toman'] = $this->pricingService->convertUsdToToman(
                     (float) $productData['price_usd'],
                     $rate
@@ -102,15 +114,26 @@ class ProductService
             $newDiscountType = $productData['discount_type'] ?? $product->discount_type?->value;
             $newDiscountValue = $productData['discount_value'] ?? $product->discount_value;
             $newPriceToman = $productData['price_toman'] ?? $product->price_toman;
-
             $this->pricingService->assertDiscountValid($newDiscountType, $newDiscountValue, $newPriceToman);
 
             $productData['updated_by'] = $userId;
+
+            // Bug fix: همون مشکل create() اینجا هم بود، فقط ساکت‌تر - چون رکورد از قبل
+            // price_toman داشت، NOT NULL رد نمی‌شد، ولی update($productData) بی‌صدا این
+            // فیلد رو نادیده می‌گرفت (چون fillable نیست) و قیمت واقعی هیچ‌وقت به‌روز
+            // نمی‌شد، با اینکه پاسخ API موفقیت‌آمیز بود. با forceFill جدا اعمالش می‌کنیم.
+            $pendingPriceToman = Arr::pull($productData, 'price_toman');
+
             $product->update($productData);
+
+            if ($pendingPriceToman !== null) {
+                $product->forceFill(['price_toman' => $pendingPriceToman])->save();
+            }
 
             if ($tagIds !== null) {
                 $product->syncTags($tagIds);
             }
+
             if (array_key_exists('meta', $data)) {
                 $product->syncMeta($meta);
             }
@@ -128,7 +151,6 @@ class ProductService
     {
         if (! $product->is_featured) {
             $activeFeaturedCount = Product::query()->where('is_featured', true)->count();
-
             if ($activeFeaturedCount >= self::MAX_FEATURED_PRODUCTS) {
                 throw ValidationException::withMessages([
                     'is_featured' => 'حداکثر '.self::MAX_FEATURED_PRODUCTS.' محصول می‌توانند هم‌زمان ویژه باشند.',
@@ -166,7 +188,6 @@ class ProductService
         foreach ($product->images as $image) {
             $this->mediaService->deleteImage($image);
         }
-
         foreach ($product->videos as $video) {
             $this->mediaService->deleteVideo($video);
         }
