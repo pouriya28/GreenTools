@@ -108,11 +108,15 @@ class PriceProposalService
     {
         $this->guardNotFinal($proposal);
 
-        $proposal->update([
-            'status' => PriceProposalStatus::Rejected,
-            'reviewed_by' => $adminId,
-            'reviewed_at' => now(),
-        ]);
+        DB::transaction(function () use ($proposal, $adminId) {
+            $proposal->update([
+                'status' => PriceProposalStatus::Rejected,
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+            ]);
+
+            $this->markRateRejectedIfBatchFullyRejected($proposal->exchangeRate, $proposal->batch_id);
+        });
 
         return $proposal->fresh();
     }
@@ -142,6 +146,48 @@ class PriceProposalService
             });
 
         return $count;
+    }
+
+    /**
+     * Bug fix: previously nothing ever set ExchangeRate::status to
+     * 'rejected', so a rate whose entire proposal batch was rejected stayed
+     * 'pending_review' forever. ExchangeRateOverrideController::current()/
+     * confirmCurrent() both just pick the latest-fetched rate, so that
+     * already-rejected rate could later be silently reactivated by an admin
+     * clicking "confirm current rate" for an unrelated reason (e.g. to add a
+     * new dollar product). Once every proposal in this rate's batch has
+     * reached a final state (approved or rejected) and none of them were
+     * approved, the rate itself is now marked rejected so it stops being
+     * treated as a valid "latest" candidate.
+     *
+     * If at least one proposal in the batch was approved, the rate is
+     * already 'applied' (set in approveOne) and that takes precedence - a
+     * rate that partially took effect should never be downgraded to
+     * 'rejected'.
+     */
+    private function markRateRejectedIfBatchFullyRejected(ExchangeRate $rate, string $batchId): void
+    {
+        if ($rate->status === 'applied') {
+            return;
+        }
+
+        $stillOpen = ProductPriceProposal::query()
+            ->where('batch_id', $batchId)
+            ->whereIn('status', [PriceProposalStatus::PendingReview, PriceProposalStatus::Edited])
+            ->exists();
+
+        if ($stillOpen) {
+            return;
+        }
+
+        $hasApproved = ProductPriceProposal::query()
+            ->where('batch_id', $batchId)
+            ->where('status', PriceProposalStatus::Approved)
+            ->exists();
+
+        if (! $hasApproved && $rate->status !== 'rejected') {
+            $rate->update(['status' => 'rejected']);
+        }
     }
 
     private function guardNotFinal(ProductPriceProposal $proposal): void

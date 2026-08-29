@@ -1,19 +1,14 @@
 import { api } from "@/shared/lib/axios"
 import type { PaginatedResponse } from "@/shared/types/pagination.types"
-import type {
-  BatchReviewResult,
-  ManualOverridePayload,
-  ManualOverrideResult,
-  PriceProposal,
-  PriceProposalFilters,
-  ResourceEnvelope,
-} from "../types"
+import type { BatchReviewResult, PriceProposal, PriceProposalFilters, ResourceEnvelope } from "../types"
 
-// نکته امنیتی: این مسیرها روی بک‌اند با میدل‌ور
-// auth:sanctum, staff.access, account.active, throttle:120,1 محافظت می‌شن؛
-// override دستی علاوه‌براین throttle جدا و سخت‌گیرانه‌تری (۵ در ۶۰ دقیقه) دارد.
-// این‌جا فقط پیام خطای throttle/دسترسی رو خوانا نشون می‌دیم؛ محدودیت واقعی
-// همیشه سمت سرور اعمال می‌شه، نه اینجا.
+// Security note: these routes are protected on the backend by the
+// auth:sanctum, staff.access, account.active, throttle:120,1 middleware, and
+// require the `prices.review` permission (see ProductPriceProposalPolicy).
+// Exchange-rate management (manual entry, on-demand fetch, confirm,
+// scheduling) now lives entirely in "./exchangeRateApi" against the separate
+// admin/exchange-rates/* routes and the exchange-rates.manage permission - do
+// not re-add those calls here, it would drift from the backend split again.
 const BASE = "/admin/prices"
 
 export async function fetchPriceProposals(filters: PriceProposalFilters = {}) {
@@ -54,14 +49,9 @@ export async function rejectProposalBatch(batchId: string) {
   return data
 }
 
-export async function submitManualExchangeRateOverride(payload: ManualOverridePayload) {
-  const { data } = await api.post<ManualOverrideResult>(`${BASE}/override`, payload)
-  return data
-}
-
-// این مسیر CSV خام برمی‌گردونه (Content-Type: text/csv)، نه یک JSON envelope؛
-// responseType باید "blob" باشه وگرنه axios سعی می‌کنه بدنه رو JSON.parse کنه
-// و روی یک CSV واقعی خطا می‌ده.
+// This route returns raw CSV (Content-Type: text/csv), not a JSON envelope;
+// responseType must be "blob" or axios will try to JSON.parse the body and
+// fail on real CSV content.
 export async function exportPriceProposalsCsv(batchId: string) {
   const response = await api.get(`${BASE}/proposals/${batchId}/export`, {
     responseType: "blob",

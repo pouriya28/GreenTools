@@ -1,20 +1,13 @@
 import { useState } from "react"
-import { AlertTriangle, Download, Loader2 } from "lucide-react"
+import type { KeyboardEvent } from "react"
+import { Download, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { getApiErrorMessage } from "@/shared/lib/apiError"
 import { downloadCsvBlob, exportPriceProposalsCsv } from "../api/pricingApi"
 import { useApproveProposalBatch, useRejectProposalBatch } from "../hooks/usePricingMutations"
+import { ConfirmActionDialog } from "./shared/ConfirmActionDialog"
+import { InlineErrorBanner } from "./shared/InlineErrorBanner"
 import type { PriceProposal } from "../types"
 
 interface BatchSummaryBarProps {
@@ -26,8 +19,9 @@ interface BatchSummaryBarProps {
 }
 
 // نوار خلاصه‌ی batch: انتخاب batch، خروجی CSV، و تایید/رد دسته‌جمعی — این
-// عملیات‌ها حساس و غیرقابل‌بازگشتن، پس هر دو پشت یک دیالوگ تایید صریح قرار
-// گرفتن (جلوگیری از خطای انسانی طبق اولویت امنیتی پروژه).
+// عملیات‌ها حساس و قابل‌برگشت‌ناشدن، پس هر دو پشت یک دیالوگ تایید مشترک
+// (ConfirmActionDialog) قرار گرفتن (جلوگیری از خطای انسانی طبق اولویت امنیتی
+// پروژه).
 export function BatchSummaryBar({
   batchId,
   batchIdInput,
@@ -74,6 +68,13 @@ export function BatchSummaryBar({
     }
   }
 
+  function handleBatchIdInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      onBatchIdSubmit()
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-bg-1 p-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -81,6 +82,7 @@ export function BatchSummaryBar({
         <Input
           value={batchIdInput}
           onChange={(e) => onBatchIdInputChange(e.target.value)}
+          onKeyDown={handleBatchIdInputKeyDown}
           placeholder="خالی = آخرین batch"
           className="h-8 w-72 font-mono text-xs"
         />
@@ -89,7 +91,9 @@ export function BatchSummaryBar({
         </Button>
 
         <div className="mr-auto flex items-center gap-2">
-          <span className="text-xs text-text-2">{pendingCount} پیشنهاد در انتظار بررسی</span>
+          <span className="rounded-full bg-bg-2 px-2.5 py-1 text-xs font-medium text-text-2">
+            {pendingCount} پیشنهاد در انتظار بررسی
+          </span>
           <Button type="button" variant="outline" size="sm" onClick={handleExport} disabled={!batchId || isExporting}>
             {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             خروجی CSV
@@ -116,30 +120,18 @@ export function BatchSummaryBar({
         </div>
       </div>
 
-      {error && (
-        <div className="flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      {error && <InlineErrorBanner message={error} />}
 
-      <AlertDialog open={confirmAction !== null} onOpenChange={(open) => !open && setConfirmAction(null)}>
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmAction === "approve" ? "تایید کل batch" : "رد کل batch"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              این عملیات روی {pendingCount} پیشنهاد قیمت در انتظار بررسی اعمال می‌شه و قابل بازگشت نیست. مطمئنی؟
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBusy}>انصراف</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmBatchAction} disabled={isBusy}>
-              {isBusy && <Loader2 className="h-4 w-4 animate-spin" />}
-              تایید نهایی
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction === "approve" ? "تایید کل batch" : "رد کل batch"}
+        description={`این عملیات روی ${pendingCount} پیشنهاد قیمت در انتظار بررسی اعمال می‌شه و قابل بازگشت نیست. مطمئنی؟`}
+        confirmLabel="تایید نهایی"
+        destructive={confirmAction === "reject"}
+        isBusy={isBusy}
+        onConfirm={handleConfirmBatchAction}
+      />
     </div>
   )
 }

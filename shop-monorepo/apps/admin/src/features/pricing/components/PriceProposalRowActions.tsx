@@ -12,7 +12,7 @@ interface PriceProposalRowActionsProps {
 
 // طبق guardNotFinal سمت بک‌اند، پیشنهادی که approved/rejected شده دیگه قابل
 // approve/reject/edit دوباره نیست (۴۰۹ PRICE_PROPOSAL_ALREADY_REVIEWED)؛
-// دکمه‌ها همین سمت هم غیرفعال می‌شن تا کاربر زودتر بفهمه و درخواست بی‌فایده
+// دکمه‌ها همین سمت هم قطع می‌شن تا کاربر زودتر بفهمه و درخواست بی‌فایده
 // به سرور نره.
 const FINAL_STATUSES = new Set(["approved", "rejected"])
 

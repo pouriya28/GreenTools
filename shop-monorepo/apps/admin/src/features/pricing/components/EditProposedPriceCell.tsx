@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { Check, Loader2, Pencil, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { getApiErrorMessage } from "@/shared/lib/apiError"
 import { formatPrice } from "@/features/products/utils"
 import { editProposalPriceSchema } from "../schema"
 import { useUpdatePriceProposal } from "../hooks/usePricingMutations"
+import { NumericInput } from "./shared/NumericInput"
 import type { PriceProposal } from "../types"
 
 interface EditProposedPriceCellProps {
@@ -14,8 +14,9 @@ interface EditProposedPriceCellProps {
 }
 
 // تکه‌ی کوچک و مستقل قابل استفاده‌ی دوباره: فقط مسئول ویرایش inline قیمت
-// پیشنهادی یک ردیف است — طبق دستورالعمل استاندارد، کامپوننت‌ها کوچک و
-// تک‌مسئولیتی نگه داشته شدند.
+// پیشنهادی است — طبق دستورالعمل استاندارد، کامپوننت‌ها کوچک و تک‌مسئولیتی
+// نگه داشته شدند. از NumericInput مشترک استفاده می‌کند تا اسکرول ماوس روی
+// فیلد فوکوس‌شده به‌اشتباه قیمت رو تعویض نکند.
 export function EditProposedPriceCell({ proposal, disabled }: EditProposedPriceCellProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [value, setValue] = useState(String(proposal.effective_price_toman))
@@ -70,12 +71,12 @@ export function EditProposedPriceCell({ proposal, disabled }: EditProposedPriceC
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
-        <Input
-          type="number"
-          inputMode="numeric"
+        <NumericInput
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className="h-8 w-32"
+          min={1}
+          max={99999999999}
           autoFocus
         />
         <Button type="button" variant="ghost" size="icon" onClick={handleSave} disabled={updateMutation.isPending}>

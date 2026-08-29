@@ -4,11 +4,12 @@ import {
   approveProposalBatch,
   rejectPriceProposal,
   rejectProposalBatch,
-  submitManualExchangeRateOverride,
   updatePriceProposal,
 } from "../api/pricingApi"
-import type { ManualOverridePayload } from "../types"
 
+// Exchange-rate mutations (manual override, fetch-now, confirm, schedules)
+// moved to "./useExchangeRateMutations" and "./useScheduleMutations" - this
+// file now only touches product price proposals, matching the backend split.
 function invalidateProposals(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ["pricing", "proposals"] })
 }
@@ -50,14 +51,6 @@ export function useRejectProposalBatch() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (batchId: string) => rejectProposalBatch(batchId),
-    onSuccess: () => invalidateProposals(queryClient),
-  })
-}
-
-export function useSubmitManualOverride() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (payload: ManualOverridePayload) => submitManualExchangeRateOverride(payload),
     onSuccess: () => invalidateProposals(queryClient),
   })
 }

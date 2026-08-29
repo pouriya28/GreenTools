@@ -13,6 +13,18 @@ use Illuminate\Support\Facades\DB;
 
 class ExchangeRateOverrideController extends Controller
 {
+    // Bug fix: fetchNow() fetched an external rate and created proposals
+    // without checking it against a sane range at all, unlike the manual
+    // override path (ManualExchangeRateOverrideRequest applies
+    // services.navasan.min_sane_rate/max_sane_rate). A corrupted or buggy API
+    // response could otherwise slip a garbage rate straight into
+    // pending_review with real proposals attached, and an admin might trust
+    // an "official API fetch" enough to approve it without noticing. Reusing
+    // the exact same config keys/fallbacks keeps both entry points to the
+    // same untrusted external data consistent.
+    private const FALLBACK_MIN_SANE_RATE = 1;
+    private const FALLBACK_MAX_SANE_RATE = 999999999;
+
     public function __construct(private PriceProposalService $proposalService) {}
 
     /**
@@ -60,6 +72,19 @@ class ExchangeRateOverrideController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
+        // Bug fix: apply the same sane-range guard used by the manual override
+        // form to this external fetch, before anything is written to the
+        // database. Without this, a broken/compromised upstream API response
+        // could create a full batch of price proposals off a nonsensical rate.
+        $min = (float) (config('services.navasan.min_sane_rate') ?? self::FALLBACK_MIN_SANE_RATE);
+        $max = (float) (config('services.navasan.max_sane_rate') ?? self::FALLBACK_MAX_SANE_RATE);
+
+        if ($fetched->rate < $min || $fetched->rate > $max) {
+            return response()->json([
+                'message' => 'نرخ دریافت‌شده از API خارج از بازه‌ی منطقی مجاز است و ذخیره نشد. لطفاً بعداً دوباره تلاش کنید یا نرخ را دستی وارد کنید.',
+            ], 422);
+        }
+
         [$rate, $batchId] = DB::transaction(function () use ($request, $fetched) {
             $rate = ExchangeRate::create([
                 'rate' => $fetched->rate,
@@ -85,13 +110,29 @@ class ExchangeRateOverrideController extends Controller
     }
 
     /**
-     * جدیدترین نرخ ثبت‌شده (صرف نظر از status) را برمی‌گرداند تا در دیالوگ
-     * override دستی به‌عنوان مقدار پیش‌فرض/مرجع نمایش داده شود و ادمین در
-     * صورت نیاز آن را اصلاح کند.
+     * جدیدترین نرخ ثبت‌شده را برمی‌گرداند تا در دیالوگ override دستی به‌عنوان
+     * مقدار پیش‌فرض/مرجع نمایش داده شود و ادمین در صورت نیاز آن را اصلاح کند.
+     *
+     * Bug fix (missing authorization): این متد، برخلاف بقیه‌ی متدهای همین
+     * کنترلر، هیچ چک permission نداشت و فقط به میدل‌ور عمومی staff.access
+     * تکیه می‌کرد - یعنی هر کارمند وارد‌شده‌ای (نه فقط کسی که
+     * exchange-rates.manage دارد) می‌توانست نرخ و منبع آن را ببیند. برای
+     * سازگاری با بقیه‌ی endpointها و اصل کمترین دسترسی، همان چک اضافه شد.
+     *
+     * Bug fix (rejected rate leaking back in): پیش‌تر این کوئری صرفاً
+     * جدیدترین رکورد را صرف‌نظر از status برمی‌گرداند. اگر آخرین نرخ ثبت‌شده
+     * توسط ادمین به‌طور کامل رد شده باشد (تمام پیشنهادهای batch آن reject شده،
+     * نگاه کنید به PriceProposalService::rejectOne)، نباید آن را به‌عنوان
+     * مرجع/پیش‌فرض نشان دهیم.
      */
-    public function current()
+    public function current(Request $request)
     {
-        $rate = ExchangeRate::query()->latest('fetched_at')->first();
+        abort_unless($request->user()?->can('exchange-rates.manage'), 403);
+
+        $rate = ExchangeRate::query()
+            ->where('status', '!=', 'rejected')
+            ->latest('fetched_at')
+            ->first();
 
         if (! $rate) {
             return response()->json(['data' => null]);
@@ -116,15 +157,23 @@ class ExchangeRateOverrideController extends Controller
      * مستقیماً تایید کند، حتی وقتی صفر یا چند پیشنهاد برایش وجود دارد. permission
      * مستقل exchange-rates.manage می‌خواهد (نه prices.review) طبق تصمیم تایید‌شده
      * جداسازی مدیریت نرخ ارز از بازبینی قیمت محصولات.
+     *
+     * Bug fix (این نسخه): مثل current()، دیگر نرخی که کامل reject شده را
+     * "جدیدترین" حساب نمی‌کند - وگرنه یک ادمین می‌توانست با زدن این دکمه (مثلاً
+     * هنگام رفع خطای "نرخ ارز ثبت نشده" هنگام افزودن محصول جدید) به‌اشتباه
+     * همان نرخی را دوباره فعال کند که تیم قبلاً آگاهانه رد کرده بود.
      */
     public function confirmCurrent(Request $request)
     {
         abort_unless($request->user()?->can('exchange-rates.manage'), 403);
 
-        $rate = ExchangeRate::query()->latest('fetched_at')->first();
+        $rate = ExchangeRate::query()
+            ->where('status', '!=', 'rejected')
+            ->latest('fetched_at')
+            ->first();
 
         if (! $rate) {
-            return response()->json(['message' => 'هیچ نرخ ارزی ثبت نشده است.'], 404);
+            return response()->json(['message' => 'هیچ نرخ ارز قابل تاییدی ثبت نشده است.'], 404);
         }
 
         if ($rate->status !== 'applied') {

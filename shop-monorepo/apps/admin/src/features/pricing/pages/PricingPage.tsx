@@ -1,25 +1,44 @@
 import { useState } from "react"
-import { Loader2, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getApiErrorMessage } from "@/shared/lib/apiError"
 import { usePriceProposals } from "../hooks/usePriceProposals"
 import { PriceProposalTable } from "../components/PriceProposalTable"
+import { PriceProposalTableSkeleton } from "../components/PriceProposalTableSkeleton"
 import { BatchSummaryBar } from "../components/BatchSummaryBar"
 import { ManualOverrideDialog } from "../components/ManualOverrideDialog"
-import { ExchangeRateBlockedNotice } from "../components/ExchangeRateBlockedNotice"
+import { ExchangeRateStatusCard } from "../components/ExchangeRateStatusCard"
+import { ExchangeRateScheduleManager } from "../components/ExchangeRateScheduleManager"
+import { InlineErrorBanner } from "../components/shared/InlineErrorBanner"
+import { InlineSuccessBanner } from "../components/shared/InlineSuccessBanner"
 
 export default function PricingPage() {
   const [batchId, setBatchId] = useState("")
   const [batchIdInput, setBatchIdInput] = useState("")
   const [isOverrideOpen, setIsOverrideOpen] = useState(false)
+  const [isScheduleManagerOpen, setIsScheduleManagerOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  // batch_id خالی = بک‌اند طبق PriceProposalController::index خودش آخرین batch رو
-  // برمی‌گردوند.
+  // Empty batch_id = the backend (PriceProposalController::index) returns the latest batch on its own.
   const { data, isLoading, isError, error } = usePriceProposals({ batch_id: batchId || undefined, per_page: 200 })
 
   function handleOverrideSuccess(newBatchId: string) {
     setBatchId(newBatchId)
     setBatchIdInput(newBatchId)
+    setSuccessMessage(
+      `نرخ ارز جدید ثبت شد و batch «${newBatchId}» از پیشنهادهای قیمت ساخته شد — برای اعمال روی قیمت محصولات، پیشنهادها رو در جدول پایین بررسی و تایید کن.`,
+    )
+  }
+
+  // fetchNow (دریافت آنی از API) هم دقیقاً مثل ثبت دستی نرخ فقط یک batch
+  // pending_review می‌سازد، پس همان مسیر موفقیت (نمایش batch در جدول پایین) را
+  // به اشتراک می‌گذارد.
+  function handleFetchNowBatchCreated(newBatchId: string) {
+    setBatchId(newBatchId)
+    setBatchIdInput(newBatchId)
+    setSuccessMessage(
+      `نرخ از API دریافت شد و batch «${newBatchId}» از پیشنهادهای قیمت ساخته شد — برای اعمال روی قیمت محصولات، پیشنهادها رو در جدول پایین بررسی و تایید کن.`,
+    )
   }
 
   const proposals = data?.data ?? []
@@ -32,31 +51,38 @@ export default function PricingPage() {
           <h1 className="text-xl font-semibold text-text-1">مدیریت نرخ ارز و قیمت‌ها</h1>
           <p className="text-sm text-text-2">ثبت دستی نرخ ارز و بررسی/تایید پیشنهادهای قیمت محصولات دلاری.</p>
         </div>
-        <Button type="button" onClick={() => setIsOverrideOpen(true)}>
-          <Plus className="h-4 w-4" />
-          ثبت نرخ ارز جدید
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" onClick={() => setIsScheduleManagerOpen((prev) => !prev)}>
+            زمان‌بندی دریافت خودکار
+          </Button>
+          <Button type="button" onClick={() => setIsOverrideOpen(true)}>
+            <Plus className="h-4 w-4" />
+            ثبت نرخ ارز جدید
+          </Button>
+        </div>
       </div>
 
-      <ExchangeRateBlockedNotice />
+      {successMessage && <InlineSuccessBanner message={successMessage} />}
+
+      <ExchangeRateStatusCard onBatchCreated={handleFetchNowBatchCreated} />
+
+      {isScheduleManagerOpen && <ExchangeRateScheduleManager />}
 
       <BatchSummaryBar
         batchId={resolvedBatchId}
         batchIdInput={batchIdInput}
         onBatchIdInputChange={setBatchIdInput}
-        onBatchIdSubmit={() => setBatchId(batchIdInput.trim())}
+        onBatchIdSubmit={() => {
+          setBatchId(batchIdInput.trim())
+          setSuccessMessage(null)
+        }}
         proposals={proposals}
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-text-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          در حال بارگذاری...
-        </div>
+        <PriceProposalTableSkeleton />
       ) : isError ? (
-        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {getApiErrorMessage(error, "دریافت پیشنهادهای قیمت ناموفق بود.")}
-        </div>
+        <InlineErrorBanner message={getApiErrorMessage(error, "دریافت پیشنهادهای قیمت ناموفق بود.")} />
       ) : (
         <PriceProposalTable proposals={proposals} />
       )}

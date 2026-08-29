@@ -29,6 +29,10 @@ function notifyRefreshSubscribers(token: string | null) {
   refreshQueue = []
 }
 
+// مسیرهایی که هرگز نباید باعث تلاش برای refresh بشن:
+// خودِ لاگین (چون یعنی هنوز سشنی وجود نداره) و خودِ رفرش (برای جلوگیری از حلقه بی‌نهایت)
+const AUTH_ROUTES_EXCLUDED_FROM_REFRESH = ["/auth/staff/login", "/auth/refresh"]
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -36,9 +40,11 @@ api.interceptors.response.use(
       _retry?: boolean
     }
 
-    const isRefreshCall = originalRequest?.url?.includes("/auth/refresh")
+    const isExcludedRoute = AUTH_ROUTES_EXCLUDED_FROM_REFRESH.some((route) =>
+      originalRequest?.url?.includes(route)
+    )
 
-    if (error.response?.status !== 401 || originalRequest._retry || isRefreshCall) {
+    if (error.response?.status !== 401 || originalRequest._retry || isExcludedRoute) {
       return Promise.reject(error)
     }
 
@@ -59,7 +65,6 @@ api.interceptors.response.use(
     }
 
     isRefreshing = true
-
     try {
       const { data } = await api.post("/auth/refresh")
       const newToken = data.data.access_token as string
