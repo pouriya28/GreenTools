@@ -100,7 +100,7 @@ export interface ProductListItem {
 export interface ProductPayload {
   category_id: number
   name: string
-  sku: string
+  sku?: string | null
   short_description?: string | null
   description?: string | null
 

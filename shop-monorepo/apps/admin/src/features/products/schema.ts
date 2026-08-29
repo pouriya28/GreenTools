@@ -6,9 +6,8 @@ export const productSchema = z
     name: z.string().min(2, "نام باید داقل ۲ کاراکتر باشد").max(200),
     sku: z
       .string()
-      .min(1, "SKU الزامی است")
       .max(64)
-      .regex(/^[a-zA-Z0-9_-]+$/, "SKU فقط می‌تواند شامل حروف انگلیسی، عدد، خط‌تیره و آندرلاین باشد"),
+      .regex(/^[a-zA-Z0-9_-]*$/, "SKU فقط می‌تواند شامل حروف انگلیسی، عدد، خط‌تیره و آندرلاین باشد"),
     short_description: z.string().max(500).nullable().optional(),
     description: z.string().max(20000).nullable().optional(),
 

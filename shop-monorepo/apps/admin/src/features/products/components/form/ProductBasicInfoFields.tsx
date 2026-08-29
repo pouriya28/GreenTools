@@ -24,8 +24,8 @@ export function ProductBasicInfoFields({ form, categoryOptions }: ProductBasicIn
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="sku">SKU</Label>
-          <Input id="sku" maxLength={64} {...register("sku")} />
+          <Label htmlFor="sku">SKU(اختیاری)</Label>
+          <Input id="sku" maxLength={64} placeholder="خالی بگذارید تا خودکار ساخته شود" {...register("sku")} />
           {formState.errors.sku && <p className="text-xs text-danger">{formState.errors.sku.message}</p>}
         </div>
 
