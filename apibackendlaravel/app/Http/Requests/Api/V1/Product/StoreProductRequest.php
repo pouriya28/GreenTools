@@ -36,6 +36,12 @@ class StoreProductRequest extends FormRequest
             'weight_grams' => ['nullable', 'integer', 'min:0', 'max:1000000'],
 
             'is_active' => ['nullable', 'boolean'],
+            'purchase_requirement' => ['nullable', 'in:standard,technical_consultation,professional_installation,restricted'],
+            'technical_notice' => ['nullable', 'string', 'max:500'],
+            'installation_notice' => ['nullable', 'string', 'max:500'],
+            'compatibility_notice' => ['nullable', 'string', 'max:500'],
+            'support_contact_enabled' => ['nullable', 'boolean'],
+            'purchase_confirmation_required' => ['nullable', 'boolean'],
 
             'meta' => ['nullable', 'array'],
             'meta.meta_title' => ['nullable', 'string', 'max:180'],

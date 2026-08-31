@@ -39,6 +39,15 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'stock_status' => $this->stock_status,
             'weight_grams' => $this->weight_grams,
+            
+
+            'purchase_requirement' => $this->purchase_requirement?->value,
+            'purchase_requirement_label' => $this->purchase_requirement?->label(),
+            'technical_notice' => $this->technical_notice,
+            'installation_notice' => $this->installation_notice,
+            'compatibility_notice' => $this->compatibility_notice,
+            'support_contact_enabled' => $this->support_contact_enabled,
+            'purchase_confirmation_required' => $this->purchase_confirmation_required,
 
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,

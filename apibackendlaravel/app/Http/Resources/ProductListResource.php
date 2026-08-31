@@ -27,6 +27,7 @@ class ProductListResource extends JsonResource
             'discount_percentage' => $this->discount_percentage,
             'has_active_discount' => $this->has_active_discount,
             'stock_status' => $this->stock_status,
+            'purchase_requirement' => $this->purchase_requirement?->value,
             'is_featured' => $this->is_featured,
             'purchases_count' => $this->purchases_count,
             'created_at' => $this->created_at?->toIso8601String(),

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMenu, FiLogOut, FiChevronDown } from "react-icons/fi";
 import { useAuthStore } from "@/store/authStore";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface ActionButtonsProps {
   onOpenMenu: () => void;
@@ -25,6 +26,9 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
       <button className="w-10 h-10 rounded-xl bg-surface/60 border border-white/5 flex items-center justify-center text-text hover:text-primary hover:border-primary/40 transition-all">
         <FiSearch className="text-lg" />
       </button>
+
+      {/* تغییر تم */}
+      <ThemeToggle />
 
       {/* علاقه‌مندی‌ها */}
       <button className="w-10 h-10 rounded-xl bg-surface/60 border border-white/5 flex items-center justify-center text-text hover:text-primary hover:border-primary/40 transition-all">
@@ -53,15 +57,13 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
             <FiChevronDown className={`text-xs text-text-secondary transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`} />
           </button>
 
-          {/* منوی کشویی کاربر */}
           {isUserMenuOpen && (
             <>
-              {/* بک‌دراپ شفاف برای کلیک بیرون منو - Z-index اصلاح شد */}
               <div
                 className="fixed inset-0 z-40"
                 onClick={() => setIsUserMenuOpen(false)}
               />
-              <div className="absolute left-0 mt-2 w-48 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-xl p-1.5 shadow-2xl z-50 animate-[scaleUp_0.15s_ease-out]">
+              <div className="absolute right-0 mt-2 w-48 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-xl p-1.5 shadow-2xl z-50 animate-[scaleUp_0.15s_ease-out]">
                 <button
                   onClick={() => {
                     setIsUserMenuOpen(false);

@@ -153,3 +153,12 @@
     stroke-dashoffset: -180;
   }
 }
+
+/* Base background/text binding */
+@layer base {
+  html,
+  body {
+    background-color: var(--background);
+    color: var(--text);
+  }
+}

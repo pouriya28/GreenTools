@@ -4,16 +4,11 @@ import { Navigation } from "./Navigation";
 import { ActionButtons } from "./ActionButtons";
 import { MobileDrawer } from "./MobileDrawer";
 import { AuthModal } from "@/features/auth/components/AuthModal";
-import { useAuthStore } from "@/store/authStore"; // فرض بر استفاده از Zustand برای مدیریت وضعیت لاگین
-
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  
-  // دریافت وضعیت لاگین از Zustand
-  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,20 +34,18 @@ export function Header() {
             }
           `}
         >
-          {/* گروه سمت راست: لوگو + آیکون سرچ */}
+          {/* گروه چپ: لوگو */}
           <div className="flex items-center gap-4">
             <Logo />
-
           </div>
 
           {/* گروه وسط: منوی نویگیشن */}
           <Navigation />
 
-          {/* گروه سمت چپ: اکشن‌ها (ورود، سبد خرید، قلب) */}
+          {/* گروه راست: اکشن‌ها (ورود، سبد خرید، قلب، تم) */}
           <ActionButtons
             onOpenMenu={() => setIsMenuOpen(true)}
             onOpenAuth={() => setIsAuthOpen(true)}
-            isAuthenticated={isAuthenticated} // پاس دادن وضعیت لاگین
           />
         </div>
       </header>

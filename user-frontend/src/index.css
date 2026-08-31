@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import "./styles/themes.css";
+@import "./styles/fonts.css";
+
+@theme {
+  --font-sans: "IranSharp", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}

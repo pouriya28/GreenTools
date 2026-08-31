@@ -1,3 +1,4 @@
+// src/app/router.tsx (یا هر نامی که این فایل دارد) — فقط خطوط تغییریافته
 import { createBrowserRouter } from "react-router-dom"
 import { lazy, Suspense, type ReactNode } from "react"
 import { RootLayout } from "./RootLayout"
@@ -13,6 +14,11 @@ const ProductsPage = lazy(() =>
     default: m.ProductsPage,
   }))
 )
+const ProductPage = lazy(() =>
+  import("@/features/products/components/ProductPage/ProductPage").then((m) => ({
+    default: m.ProductPage,
+  }))
+)
 
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<PageLoader />}>{element}</Suspense>
@@ -26,7 +32,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: withSuspense(<Home />) },
       { path: "products", element: withSuspense(<ProductsPage />) },
-      // بعداً: { path: "products/:slug", element: withSuspense(<ProductDetailPage />) },
+      { path: "products/:slug", element: withSuspense(<ProductPage />) },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

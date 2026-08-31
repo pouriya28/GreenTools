@@ -14,6 +14,7 @@ import { buildCategoryOptions } from "../utils"
 import { ProductBasicInfoFields } from "./form/ProductBasicInfoFields"
 import { ProductPricingFields } from "./form/ProductPricingFields"
 import { ProductInventoryFields } from "./form/ProductInventoryFields"
+import { ProductPurchaseRequirementFields } from "./form/ProductPurchaseRequirementFields"
 import { ProductSeoFields } from "./form/ProductSeoFields"
 import { ProductMediaSection } from "./media/ProductMediaSection"
 
@@ -31,13 +32,9 @@ function buildDefaultValues(product?: Product | null): ProductFormValues {
     sku: product?.sku ?? "",
     short_description: product?.short_description ?? "",
     description: product?.description ?? "",
-    // قبلاً از product?.price (ریال) پر می‌شد؛ الان از price_usd چون بک‌اند فقط
-    // همین فیلد را در UpdateProductRequest قبول می‌کند.
     price_usd: product?.price_usd ?? 0,
     discount_type: product?.discount_type ?? null,
     discount_value: product?.discount_value ?? null,
-    // قبلاً همیشه null می‌موند (بک‌اند این فیلد را برنمی‌گردوند)؛ الان که
-    // ProductResource اصلاح شد، مقدار واقعی محصول را می‌پر کنیم.
     discount_starts_at: product?.discount_starts_at ?? null,
     discount_ends_at: product?.discount_ends_at ?? null,
     stock_quantity: product?.stock_quantity ?? 0,
@@ -46,18 +43,20 @@ function buildDefaultValues(product?: Product | null): ProductFormValues {
     is_active: product?.is_active ?? true,
     meta_title: product?.meta_title ?? "",
     meta_description: product?.meta_description ?? "",
+    purchase_requirement: product?.purchase_requirement ?? "standard",
+    technical_notice: product?.technical_notice ?? "",
+    installation_notice: product?.installation_notice ?? "",
+    compatibility_notice: product?.compatibility_notice ?? "",
+    support_contact_enabled: product?.support_contact_enabled ?? false,
+    purchase_confirmation_required: product?.purchase_confirmation_required ?? false,
   }
 }
 
 export function ProductFormDialog({ open, onOpenChange, productId = null }: ProductFormDialogProps) {
   const isEdit = productId !== null
   const [formError, setFormError] = useState<string | null>(null)
-  // وقتی در حالت ساخت، اولین بار که فرم با موفقیت submit می‌شه، id محصول تازه ساخته شده رو
-  // اینجا نگه می‌داریم تا بدون بستن دیالوگ، بخش مدیریت عکس/ویدیو رو نمایش بدهیم.
   const [createdProductId, setCreatedProductId] = useState<number | null>(null)
 
-  // همین productId (اگر واقعاً در حال ویرایش هستیم) یا همون محصولی که همین الان در همین
-  // حین باز بودن دیالوگ ساختیم.
   const effectiveProductId = productId ?? createdProductId
   const isPersisted = effectiveProductId !== null
 
@@ -74,11 +73,6 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
     defaultValues: buildDefaultValues(null),
   })
 
-  // فیکس: قبلاً این افکت هر بار که `product` (داده‌ی query) توسط مرجع جدید می‌شد، دوباره
-  // form.reset می‌کرد. با اضافه شدن بخش مدیریت عکس/ویدیو، هر mutation روی عکس/ویدیو
-  // کویری دیتایل محصول رو invalidate می‌کرد و باعث رفرش تازه می‌شد؛ اگر هر بار
-  // form.reset فرا می‌خوند، هر تویی یا تغییر قیمتی که کاربر روی فیلدهای دیگر انجام داده پاک
-  // می‌شد. برای همین فقط یک بار به ازای هر جلسه‌ی باز بودن دیالوگ ریست می‌کنیم.
   const initializedKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -89,7 +83,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
 
     const key = isEdit ? `edit-${productId}` : "create"
     if (initializedKeyRef.current === key) return
-    if (isEdit && !product) return // هنوز محصول لود نشده
+    if (isEdit && !product) return
 
     setFormError(null)
     form.reset(buildDefaultValues(isEdit ? product ?? null : null))
@@ -121,14 +115,17 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
       is_active: values.is_active,
       meta_title: values.meta_title?.trim() || null,
       meta_description: values.meta_description?.trim() || null,
+      purchase_requirement: values.purchase_requirement,
+      technical_notice: values.technical_notice?.trim() || null,
+      installation_notice: values.installation_notice?.trim() || null,
+      compatibility_notice: values.compatibility_notice?.trim() || null,
+      support_contact_enabled: values.support_contact_enabled,
+      purchase_confirmation_required: values.purchase_confirmation_required,
     }
 
     try {
       if (effectiveProductId) {
         await updateMutation.mutateAsync({ id: effectiveProductId, payload })
-        // اگر از اول دیالوگ در حالت ویرایش باز شده باشه (isEdit)، مطابق رفتار قبلی بسته
-        // می‌شه. اگر همین الان محصول رو ساختیم (create-then-attach-media flow)، دیالوگ رو باز
-        // نگه می‌داریم تا کاربر بتونه عکس/ویدیو اضافه کنه و خودش با دکمه‌ی «بستن» تمومش کنه.
         if (isEdit) {
           onOpenChange(false)
         }
@@ -177,11 +174,9 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
             <ProductBasicInfoFields form={form} categoryOptions={categoryOptions} />
             <ProductPricingFields form={form} currentTomanPrice={isPersisted ? product?.price ?? null : null} />
             <ProductInventoryFields form={form} />
+            <ProductPurchaseRequirementFields form={form} />
             <ProductSeoFields form={form} />
 
-            {/* بخش مدیریت عکس/ویدیو: فقط بعد از اینکه محصول واقعاً ذخیره شد (ویرایش یا همین
-                الان ساخته شد) نمایش داده می‌شه؛ قبل از اون media رو توی فرم کاری می‌کرد ولی پشتوانه
-                محصولی که هنوز id ندارد وجود ندارد. */}
             {isPersisted && effectiveProductId && (
               <ProductMediaSection
                 productId={effectiveProductId}

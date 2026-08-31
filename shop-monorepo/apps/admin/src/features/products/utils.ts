@@ -1,5 +1,5 @@
 import type { Category } from "@/features/categories/types"
-import type { StockStatus } from "./types"
+import type { PurchaseRequirement, StockStatus } from "./types"
 
 export interface CategoryOption {
   id: number
@@ -33,4 +33,18 @@ export const STOCK_STATUS_BADGE_VARIANT: Record<StockStatus, "success" | "danger
   in_stock: "success",
   out_of_stock: "danger",
   preorder: "warning",
+}
+
+export const PURCHASE_REQUIREMENT_LABELS: Record<PurchaseRequirement, string> = {
+  standard: "خرید عادی",
+  technical_consultation: "نیاز به مشاوره فنی",
+  professional_installation: "نیاز به نصب تخصصی",
+  restricted: "محدود - نیاز به تماس با پشتیبانی",
+}
+
+export const PURCHASE_REQUIREMENT_BADGE_VARIANT: Record<PurchaseRequirement, "success" | "warning" | "danger"> = {
+  standard: "success",
+  technical_consultation: "warning",
+  professional_installation: "warning",
+  restricted: "danger",
 }

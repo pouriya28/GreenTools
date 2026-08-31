@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DiscountType;
+use App\Enums\PurchaseRequirement;
 use App\Models\Concerns\HasMeta;
 use App\Models\Concerns\HasTags;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,13 +15,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
     use HasFactory, SoftDeletes, HasTags, HasMeta;
-
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'short_description', 'description',
         'price_usd', // price_toman عمداً اینجا نیست - فقط از طریق PricingService/Job نوشته می‌شه
         'discount_type', 'discount_value', 'discount_starts_at', 'discount_ends_at',
         'stock_quantity', 'stock_status', 'weight_grams',
         'is_active', 'is_featured', 'created_by', 'updated_by',
+        'purchase_requirement', 'technical_notice', 'installation_notice',
+        'compatibility_notice', 'support_contact_enabled', 'purchase_confirmation_required',
     ];
 
     protected $casts = [
@@ -36,6 +38,9 @@ class Product extends Model
         'is_featured' => 'boolean',
         'views_count' => 'integer',
         'stock_status' => \App\Enums\StockStatus::class,
+        'purchase_requirement' => PurchaseRequirement::class,
+        'support_contact_enabled' => 'boolean',
+        'purchase_confirmation_required' => 'boolean',
     ];
 
     public function category(): BelongsTo

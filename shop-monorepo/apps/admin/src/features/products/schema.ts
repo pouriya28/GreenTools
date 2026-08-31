@@ -1,5 +1,12 @@
 import { z } from "zod"
 
+export const purchaseRequirementEnum = z.enum([
+  "standard",
+  "technical_consultation",
+  "professional_installation",
+  "restricted",
+])
+
 export const productSchema = z
   .object({
     category_id: z.number({ required_error: "دسته‌بندی را انتخاب کنید" }),
@@ -11,8 +18,6 @@ export const productSchema = z
     short_description: z.string().max(500).nullable().optional(),
     description: z.string().max(20000).nullable().optional(),
 
-    // قیمت حالا به دلار وارد می‌شه (نه تومان)؛ محدوده بر اساس رنج معقول
-    // قیمت دلاری محصولات تنظیم شده، نه رنج قبلی ریالی.
     price_usd: z.number().min(0.01, "قیمت باید حداقل ۰.۰۱ دلار باشد").max(999999.99),
     discount_type: z.enum(["percent", "fixed"]).nullable().optional(),
     discount_value: z.number().min(0).nullable().optional(),
@@ -26,12 +31,15 @@ export const productSchema = z
     is_active: z.boolean(),
     meta_title: z.string().max(180).nullable().optional(),
     meta_description: z.string().max(300).nullable().optional(),
+
+    // فیلد مرکزی شرایط خرید + اطلاعات تکمیلی مرتبط
+    purchase_requirement: purchaseRequirementEnum,
+    technical_notice: z.string().max(500).nullable().optional(),
+    installation_notice: z.string().max(500).nullable().optional(),
+    compatibility_notice: z.string().max(500).nullable().optional(),
+    support_contact_enabled: z.boolean(),
+    purchase_confirmation_required: z.boolean(),
   })
-  // نکته‌ی مهم: قانون قبلی «تخفیف ثابت ≤ قیمت» حذف شد، چون price_usd الان
-  // دلاریه ولی discount_type=fixed طبق منطق فعلی بک‌اند به تومان حساب می‌شه
-  // و مقایسه‌ی مستقیم این دو عدد دیگه معنی نداره و فرم رو اشتباه رد می‌کرد. فقط
-  // قانون درصد ≤۱۰۰ و ترتیب تاریخ‌ها باقی مونده. اگر بک‌اند برای تخفیف ثابت
-  // واحد دلار رو هم قبول می‌کنه، بگو تا این قانون رو با واحد درست برگردونم.
   .superRefine((data, ctx) => {
     if (!data.discount_type) return
 

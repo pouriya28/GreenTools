@@ -35,15 +35,12 @@ class ProductService
             $productData['created_by'] = $userId;
             $productData['updated_by'] = $userId;
 
-            // SKU الان اختیاریه (StoreProductRequest) - اگه ادمین وارد نکرده باشه، خودکار می‌سازیم.
             if (empty($productData['sku'])) {
                 $productData['sku'] = $this->skuGenerator->generate((int) $productData['category_id']);
             }
 
             $rate = ExchangeRate::applied()->latest('fetched_at')->first();
             if (! $rate) {
-                // بدون نرخ دلار، محصول با قیمت صفر منتشر می‌شد که یعنی عملاً
-                // مجانی رو سایت می‌رفت — به‌جای پیش‌فرض ناامن، صریح رد می‌کنیم.
                 throw ValidationException::withMessages([
                     'price_usd' => 'نرخ دلار هنوز ثبت نشده؛ امکان ساخت محصول با قیمت‌گذاری دلاری نیست. ابتدا نرخ ارز را به‌روزرسانی کنید.',
                 ]);
@@ -57,13 +54,12 @@ class ProductService
                 $priceToman
             );
 
-            $product = Product::create($productData);
-
-            // Bug fix: price_toman عمداً در $fillable نیست (کامنت روی مدل)، پس اینجا
-            // که قبلاً از طریق همون آرایه‌ی create() ست می‌شد، mass assignment بی‌صدا
-            // حذفش می‌کرد و INSERT با ستون NOT NULL خالی رد می‌شد. با forceFill+save
-            // صریح و جدا از mass assignment ست می‌کنیم.
-            $product->forceFill(['price_toman' => $priceToman])->save();
+            // price_toman عمداً fillable نیست (کامنت روی مدل)، ولی ستون NOT NULL دیتابیسه.
+            // اول مدل رو با فیلدهای مجاز می‌سازیم (بدون ذخیره)، بعد فیلد گاردشده رو با
+            // forceFill ست می‌کنیم، و با یک save() واحد یک INSERT کامل و معتبر می‌زنیم.
+            $product = new Product($productData);
+            $product->forceFill(['price_toman' => $priceToman]);
+            $product->save();
 
             $product->syncMeta($meta);
             $product->syncTags($tagIds);

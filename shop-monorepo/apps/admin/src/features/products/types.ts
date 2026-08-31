@@ -2,6 +2,11 @@ import type { Category } from "@/features/categories/types"
 
 export type DiscountType = "percent" | "fixed"
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder"
+export type PurchaseRequirement =
+  | "standard"
+  | "technical_consultation"
+  | "professional_installation"
+  | "restricted"
 
 export interface ProductImage {
   id: number
@@ -41,17 +46,12 @@ export interface Product {
   price: number
   // قیمت مرجع به دلار؛ ادمین این فیلد رو مستقیم ویرایش می‌کنه و بک‌اند بر
   // اساس نرخ ارز روز، price (تومان) رو از روی این محاسبه می‌کنه.
-  // نکته: قبلاً ProductResource این فیلد رو برنمی‌گردوند (باگ) — در همین
-  // بازبینی اصلاح شد.
   price_usd: number
   final_price: number
   discount_percentage: number | null
   has_active_discount: boolean
   discount_type: DiscountType | null
   discount_value: number | null
-  // نکته: قبلاً ProductResource فقط discount_ends_at رو برمی‌گردوند و
-  // discount_starts_at همیشه گم می‌شد (باعث می‌شد هر ویرایش، تاریخ شروع
-  // تخفیف رو خالی کنه). در همین بازبینی به ProductResource اضافه شد.
   discount_starts_at: string | null
   discount_ends_at: string | null
 
@@ -64,6 +64,17 @@ export interface Product {
   views_count: number
   purchases_count: number
   likes_count: number
+
+  // اضافه شد: مدل متمرکز «شرایط خرید» به‌جای Booleanهای پراکنده.
+  // purchase_requirement فیلد اصلی تصمیم‌گیرنده است؛ بقیه فیلدهای زیر
+  // اطلاعات تکمیلی‌ان که با توجه به مقدار آن معنا پیدا می‌کنند.
+  purchase_requirement: PurchaseRequirement
+  purchase_requirement_label: string
+  technical_notice: string | null
+  installation_notice: string | null
+  compatibility_notice: string | null
+  support_contact_enabled: boolean
+  purchase_confirmation_required: boolean
 
   category: Category
   images: ProductImage[]
@@ -80,7 +91,6 @@ export interface ProductListItem {
   id: number
   name: string
   slug: string
-  // قبلاً در ProductListResource برنمی‌گشت (باگ) — در همین بازبینی اضافه شد.
   sku: string
   short_description: string | null
   price: number
@@ -88,6 +98,8 @@ export interface ProductListItem {
   discount_percentage: number | null
   has_active_discount: boolean
   stock_status: StockStatus
+  // اضافه شد: مطابق ProductListResource، فقط خود مقدار (بدون notice ها) در لیست برمی‌گرده
+  purchase_requirement: PurchaseRequirement
   is_featured: boolean
   purchases_count: number
   created_at: string | null
@@ -104,8 +116,6 @@ export interface ProductPayload {
   short_description?: string | null
   description?: string | null
 
-  // قبلاً price (تومان) مستقیم ارسال می‌شد؛ الان بک‌اند price_usd می‌گیره
-  // و خودش تومان رو بر اساس نرخ روز حساب می‌کنه.
   price_usd: number
   discount_type?: DiscountType | null
   discount_value?: number | null
@@ -119,6 +129,13 @@ export interface ProductPayload {
   is_active?: boolean
   meta_title?: string | null
   meta_description?: string | null
+
+  purchase_requirement?: PurchaseRequirement
+  technical_notice?: string | null
+  installation_notice?: string | null
+  compatibility_notice?: string | null
+  support_contact_enabled?: boolean
+  purchase_confirmation_required?: boolean
 }
 
 export interface ProductFilters {

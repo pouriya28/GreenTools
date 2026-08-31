@@ -46,6 +46,12 @@ class UpdateProductRequest extends FormRequest
             'weight_grams' => ['nullable', 'integer', 'min:0', 'max:1000000'],
 
             'is_active' => ['nullable', 'boolean'],
+            'purchase_requirement' => ['sometimes', 'nullable', 'in:standard,technical_consultation,professional_installation,restricted'],
+            'technical_notice' => ['nullable', 'string', 'max:500'],
+            'installation_notice' => ['nullable', 'string', 'max:500'],
+            'compatibility_notice' => ['nullable', 'string', 'max:500'],
+            'support_contact_enabled' => ['nullable', 'boolean'],
+            'purchase_confirmation_required' => ['nullable', 'boolean'],
             'meta_title' => ['nullable', 'string', 'max:180'],
             'meta_description' => ['nullable', 'string', 'max:300'],
         ];
