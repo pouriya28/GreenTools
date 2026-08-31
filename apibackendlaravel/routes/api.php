@@ -21,6 +21,17 @@ Route::prefix('v1/auth/staff')->group(base_path('routes/api/v1/staff_auth.php'))
 Route::prefix('v1/categories')->group(base_path('routes/api/v1/categories.php'));
 Route::prefix('v1/products')->group(base_path('routes/api/v1/products.php'));
 
+// سبد خرید (guest + authenticated). امنیت/مالکیت داخل ResolveCart و
+// ValidateCartOwnership اعمال می‌شود، نه در این فایل.
+Route::prefix('v1/cart')->group(base_path('routes/api/v1/cart.php'));
+
+// شروع فرآیند پرداخت/سفارش. فقط برای کاربر احراز هویت‌شده (auth:sanctum).
+Route::prefix('v1/checkout')->group(base_path('routes/api/v1/checkout.php'));
+
+// callback درگاه پرداخت. بدون auth guard؛ امنیت با تایید امضا در کنترلر
+// به‌صورت fail-closed تضمین می‌شود.
+Route::prefix('v1/payments')->group(base_path('routes/api/v1/payments.php'));
+
 // بررسی و تایید پیشنهادهای قیمت محصولات (سمت «به‌روزرسانی قیمت محصولات»).
 // مسیرهای خودرا به‌صورت کامل (admin/prices/*) داخل pricing.php دارند.
 Route::prefix('v1')->group(base_path('routes/api/v1/pricing.php'));

@@ -34,7 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'verify.origin' => \App\Http\Middleware\VerifyOriginForCookie::class,
-        ]);
+            'resolve-cart' => \App\Http\Middleware\ResolveCart::class,
+            'validate-cart-ownership' => \App\Http\Middleware\ValidateCartOwnership::class, 
+            ]);
 
         // ترتیب مهمه: RequestId باید همیشه اولین middleware باشه چون
         // SecurityHeaders و همه‌ی لاگ‌ها و پاسخ‌های بعدی به request_id وابسته‌ن.

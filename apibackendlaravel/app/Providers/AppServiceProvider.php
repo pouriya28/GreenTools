@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\MergeGuestCartOnLogin;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -11,9 +12,11 @@ use App\Services\Mail\LaravelMailOtpService;
 use App\Services\Mail\MailServiceInterface;
 use App\Services\Sms\LogSmsService;
 use App\Services\Sms\SmsServiceInterface;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +30,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Services\Pricing\ExchangeRateProviderInterface::class,
             \App\Services\Pricing\NavasanExchangeRateProvider::class
+        );
+
+        // Placeholder until a real payment gateway is selected (see
+        // ORDER_SYSTEM_SPECIFICATION.md, section 5.1). AbstractPaymentGateway
+        // fails closed on every method so nothing can be marked "paid" by mistake.
+        $this->app->bind(
+            \App\Contracts\PaymentGatewayInterface::class,
+            \App\Services\Payments\AbstractPaymentGateway::class
         );
     }
 
@@ -72,5 +83,21 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('password-reset', function (Request $request) {
             return Limit::perMinute(6)->by($request->ip());
         });
+
+        // نوشتن روی سبد خرید (add/update/remove) - بر اساس کاربر، یا در نبود آن
+        // توکن مهمان، و در نبود آن IP.
+        RateLimiter::for('cart-write', function (Request $request) {
+            $identity = $request->user()?->id ?? $request->cookie('cart_guest_token') ?? $request->ip();
+
+            return Limit::perMinute(30)->by('cart-write:'.$identity);
+        });
+
+        // شروع چک‌اوت - محدودیت سخت‌گیرانه‌تر چون سفارش/رزرو موجودی می‌سازد.
+        RateLimiter::for('checkout', function (Request $request) {
+            return Limit::perMinute(5)->by('checkout:'.$request->user()->id);
+        });
+
+        // ادغام سبد مهمان با سبد کاربر، مستقل از مسیر ورود (فرم لاگین، Sanctum SPA، و...).
+        Event::listen(Login::class, MergeGuestCartOnLogin::class);
     }
 }

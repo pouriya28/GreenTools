@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\ExpireInventoryReservationsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,4 +15,14 @@ Artisan::command('inspire', function () {
 Schedule::command('exchange-rates:run-due-schedules')
     ->everyMinute()
     ->withoutOverlapping()
-    ->onOneServer(); // اگه چند وُرکر/سرور داری، فقط یکیشون اجرا کنه
+    ->onOneServer();
+
+// هر دقیقه بررسی می‌کند که آیا رزرو موجودی منقضی‌شده‌ای وجود دارد؛ در صورت
+// وجود، سفارش‌های در انتظار پرداخت مرتبط را لغو و موجودی رزرو‌شده را آزاد
+// می‌کند. withoutOverlapping/onOneServer هم‌الگو با job نرخ ارز، چون این
+// Job هم تراکنش‌های نوشتاری روی order/inventory_reservations انجام می‌دهد
+// و اجرای هم‌زمان چند نسخه‌ی آن می‌تواند باعث race condition شود.
+Schedule::job(new ExpireInventoryReservationsJob)
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();

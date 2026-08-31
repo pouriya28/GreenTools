@@ -43,6 +43,7 @@ abstract class ApiException extends \RuntimeException
             code: $this->errorCode(),
             status: $this->statusCode(),
             errors: $this->errors,
+            meta: $this->context,
         );
     }
 
