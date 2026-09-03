@@ -52,8 +52,23 @@ class UpdateProductRequest extends FormRequest
             'compatibility_notice' => ['nullable', 'string', 'max:500'],
             'support_contact_enabled' => ['nullable', 'boolean'],
             'purchase_confirmation_required' => ['nullable', 'boolean'],
-            'meta_title' => ['nullable', 'string', 'max:180'],
-            'meta_description' => ['nullable', 'string', 'max:300'],
+
+            // فیکس شد: قبلاً 'meta_title'/'meta_description' به‌صورت تخت و بدون
+            // نستینگ زیر 'meta' تعریف شده بودن - در حالی که ProductService از
+            // $data['meta']['meta_title'] (ساختار nested، هماهنگ با Store) استفاده
+            // می‌کنه. چون این کلیدها اصلاً با ساختار واقعی داده‌ی ورودی مطابقت
+            // نداشتن، validated() هیچ‌وقت 'meta' رو برنمی‌گردوند و ویرایش
+            // meta_title/meta_description از فرم ادمین ساکت fail می‌شد.
+            'meta' => ['nullable', 'array'],
+            'meta.meta_title' => ['nullable', 'string', 'max:180'],
+            'meta.meta_description' => ['nullable', 'string', 'max:300'],
+
+            // فیکس شد: در Update اصلاً تعریف نشده بود، پس $request->validated()
+            // همیشه tag_ids رو حذف می‌کرد و ProductService::update() هیچ‌وقت
+            // syncTags صدا نمی‌زد - یعنی تغییر تگ‌های محصول از فرم ویرایش کار
+            // نمی‌کرد (بدون هیچ خطایی، صرفاً بی‌اثر).
+            'tag_ids' => ['nullable', 'array', 'max:50'],
+            'tag_ids.*' => ['integer', 'distinct', 'exists:tags,id'],
         ];
     }
 

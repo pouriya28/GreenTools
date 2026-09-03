@@ -1,3 +1,4 @@
+// src/features/products/components/form/ProductPurchaseRequirementFields.tsx
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,66 +16,122 @@ export function ProductPurchaseRequirementFields({ form }: ProductPurchaseRequir
   const purchaseRequirement = watch("purchase_requirement")
 
   return (
-    <details className="rounded-md border border-border px-3 py-2" open>
-      <summary className="cursor-pointer text-sm font-medium text-text-2">شرایط خرید</summary>
-      <div className="mt-3 flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="purchase_requirement">نوع شرایط خرید</Label>
+    <details className="group rounded-xl border border-slate-800 bg-slate-900/40 p-4 transition-all duration-200 open:bg-slate-900/80 open:shadow-lg">
+      <summary className="flex cursor-pointer items-center justify-between font-semibold text-slate-200 select-none hover:text-white">
+        <span>شرایط خرید</span>
+        <span className="text-xs text-slate-400 group-open:rotate-180 transition-transform duration-200">
+          ▼
+        </span>
+      </summary>
+
+      <div className="mt-4 flex flex-col gap-5 border-t border-slate-800/80 pt-4">
+        {/* نوع شرایط خرید */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="purchase_requirement" className="text-sm font-medium text-slate-200">
+            نوع شرایط خرید
+          </Label>
           <Controller
             control={control}
             name="purchase_requirement"
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="purchase_requirement">
+                <SelectTrigger
+                  id="purchase_requirement"
+                  className="h-11 w-full border-slate-700/80 bg-slate-900/90 text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+                >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="standard">خرید عادی</SelectItem>
-                  <SelectItem value="technical_consultation">نیاز به مشاوره فنی</SelectItem>
-                  <SelectItem value="professional_installation">نیاز به نصب تخصصی</SelectItem>
-                  <SelectItem value="restricted">محدود - نیاز به تماس با پشتیبانی</SelectItem>
+                <SelectContent className="z-[99999] border-slate-700 bg-slate-900/98 p-1 text-slate-100 shadow-2xl backdrop-blur-md">
+                  <SelectItem value="standard" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    خرید عادی
+                  </SelectItem>
+                  <SelectItem value="technical_consultation" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    نیاز به مشاوره فنی
+                  </SelectItem>
+                  <SelectItem value="professional_installation" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    نیاز به نصب تخصصی
+                  </SelectItem>
+                  <SelectItem value="restricted" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    محدود - نیاز به تماس با پشتیبانی
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
           />
         </div>
 
+        {/* پیام‌های هشدار مشروط */}
         {purchaseRequirement !== "standard" && (
-          <>
+          <div className="flex flex-col gap-4 animate-in fade-in-50 duration-200">
             {(purchaseRequirement === "technical_consultation" || purchaseRequirement === "restricted") && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="technical_notice">پیام هشدار فنی</Label>
-                <Textarea id="technical_notice" rows={2} maxLength={500} {...register("technical_notice")} />
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="technical_notice" className="text-sm font-medium text-slate-200">
+                  پیام هشدار فنی
+                </Label>
+                <Textarea
+                  id="technical_notice"
+                  rows={2}
+                  maxLength={500}
+                  className="resize-y border-slate-700/80 bg-slate-900/90 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+                  {...register("technical_notice")}
+                />
               </div>
             )}
 
             {purchaseRequirement === "professional_installation" && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="installation_notice">پیام هشدار نصب</Label>
-                <Textarea id="installation_notice" rows={2} maxLength={500} {...register("installation_notice")} />
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="installation_notice" className="text-sm font-medium text-slate-200">
+                  پیام هشدار نصب
+                </Label>
+                <Textarea
+                  id="installation_notice"
+                  rows={2}
+                  maxLength={500}
+                  className="resize-y border-slate-700/80 bg-slate-900/90 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+                  {...register("installation_notice")}
+                />
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="compatibility_notice">پیام سازگاری (اختیاری)</Label>
-              <Textarea id="compatibility_notice" rows={2} maxLength={500} {...register("compatibility_notice")} />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="compatibility_notice" className="text-sm font-medium text-slate-200">
+                پیام سازگاری (اختیاری)
+              </Label>
+              <Textarea
+                id="compatibility_notice"
+                rows={2}
+                maxLength={500}
+                className="resize-y border-slate-700/80 bg-slate-900/90 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+                {...register("compatibility_notice")}
+              />
             </div>
-          </>
+          </div>
         )}
 
-        <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-          <Label htmlFor="support_contact_enabled">نمایش دکمه تماس با پشتیبانی</Label>
+        {/* سوییچ نمایش دکمه تماس با پشتیبانی */}
+        <div className="flex items-center justify-between rounded-lg border border-slate-700/80 bg-slate-900/50 p-3.5 transition-colors hover:bg-slate-900/80">
+          <Label htmlFor="support_contact_enabled" className="cursor-pointer text-sm font-medium text-slate-200">
+            نمایش دکمه تماس با پشتیبانی
+          </Label>
           <Controller
             control={control}
             name="support_contact_enabled"
             render={({ field }) => (
-              <Switch id="support_contact_enabled" checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                id="support_contact_enabled"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                className="data-[state=checked]:bg-indigo-600"
+              />
             )}
           />
         </div>
 
-        <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-          <Label htmlFor="purchase_confirmation_required">نیاز به تأیید قبل از خرید</Label>
+        {/* سوییچ نیاز به تأیید قبل از خرید */}
+        <div className="flex items-center justify-between rounded-lg border border-slate-700/80 bg-slate-900/50 p-3.5 transition-colors hover:bg-slate-900/80">
+          <Label htmlFor="purchase_confirmation_required" className="cursor-pointer text-sm font-medium text-slate-200">
+            نیاز به تأیید قبل از خرید
+          </Label>
           <Controller
             control={control}
             name="purchase_confirmation_required"
@@ -83,6 +140,7 @@ export function ProductPurchaseRequirementFields({ form }: ProductPurchaseRequir
                 id="purchase_confirmation_required"
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                className="data-[state=checked]:bg-indigo-600"
               />
             )}
           />

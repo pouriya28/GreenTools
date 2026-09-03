@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertTriangle, Loader2 } from "lucide-react"
@@ -17,6 +17,7 @@ import { ProductInventoryFields } from "./form/ProductInventoryFields"
 import { ProductPurchaseRequirementFields } from "./form/ProductPurchaseRequirementFields"
 import { ProductSeoFields } from "./form/ProductSeoFields"
 import { ProductMediaSection } from "./media/ProductMediaSection"
+import { sanitizeDescriptionHtml } from "../utils/sanitizeDescriptionHtml"
 
 interface ProductFormDialogProps {
   open: boolean
@@ -62,7 +63,9 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
 
   const { data: product, isLoading: isLoadingProduct } = useProduct(open ? effectiveProductId : null)
   const { data: categories } = useCategories()
-  const categoryOptions = buildCategoryOptions(categories ?? [])
+  // memoize شد تا buildCategoryOptions فقط وقتی categories واقعاً تغییر کرد
+  // دوباره محاسبه بشه، نه در هر رندر فرم (تایپ کردن، تغییر هر فیلد دیگه و...)
+  const categoryOptions = useMemo(() => buildCategoryOptions(categories ?? []), [categories])
 
   const createMutation = useCreateProduct()
   const updateMutation = useUpdateProduct()
@@ -102,8 +105,15 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
       category_id: values.category_id,
       name: values.name.trim(),
       sku: values.sku.trim(),
-      short_description: values.short_description?.trim() || null,
-      description: values.description?.trim() || null,
+      // پاس نهایی پاکسازی HTML قبل از ارسال به API — لایه‌ی دفاعی سوم
+      // (بعد از خودِ ادیتور و onChange آن)، برای اطمینان از این‌که هیچ
+      // مسیری description/short_description را بدون پاک‌سازی ارسال نمی‌کند.
+      short_description: values.short_description
+        ? sanitizeDescriptionHtml(values.short_description).trim() || null
+        : null,
+      description: values.description
+        ? sanitizeDescriptionHtml(values.description).trim() || null
+        : null,
       price_usd: values.price_usd,
       discount_type: values.discount_type || null,
       discount_value: values.discount_type ? (values.discount_value ?? null) : null,
@@ -145,7 +155,12 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
 
   return (
     <Dialog open={open} onOpenChange={(next) => !isSubmitting && onOpenChange(next)}>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto border-border bg-bg-1" dir="rtl">
+      {/* روی موبایل عرض قبلی حفظ شد؛ روی PC (lg+) تا ۱۰۲۴px عریض‌تر می‌شود
+          تا فیلدهای دسته‌بندی/SKU و ادیتور توضیحات جای کافی داشته باشند. */}
+      <DialogContent
+        className="max-h-[92vh] w-[min(96vw,32rem)] overflow-y-auto border-border bg-bg-1 lg:w-[min(92vw,64rem)] lg:max-w-4xl"
+        dir="rtl"
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? "ویرایش محصول" : "محصول جدید"}</DialogTitle>
           <DialogDescription>
@@ -191,7 +206,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isPersisted ? "ذخیره‌ی تقییرات" : "ساخت محصول و افزودن عکس/ویدیو"}
+                {isPersisted ? "ذخیره‌ی تغییرات" : "ساخت محصول و افزودن عکس/ویدیو"}
               </Button>
             </DialogFooter>
           </form>

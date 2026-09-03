@@ -5,12 +5,17 @@ namespace App\Services\Cart;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Services\Stock\StockAvailabilityService;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 
 class CartMergeService
 {
     private const MAX_QUANTITY_PER_ITEM = 20;
+
+    public function __construct(
+        private readonly StockAvailabilityService $stockAvailability,
+    ) {}
 
     /**
      * Merges a guest cart into the authenticated user's active cart.
@@ -40,7 +45,6 @@ class CartMergeService
             }
 
             $guestCart->update(['status' => 'converted']);
-
             Cart::where('id', $userCart->id)->update(['version' => DB::raw('version + 1')]);
         });
 
@@ -63,10 +67,14 @@ class CartMergeService
             ->where('product_id', $product->id)
             ->first();
 
+        // Never trust raw stock_quantity alone — subtract stock already held
+        // by other users' active reservations, same rule CartService enforces.
+        $available = $this->stockAvailability->availableStock($product);
+
         $mergedQuantity = min(
             ($existing?->quantity ?? 0) + $guestItem->quantity,
             self::MAX_QUANTITY_PER_ITEM,
-            $product->stock_quantity
+            $available
         );
 
         if ($mergedQuantity < 1) {

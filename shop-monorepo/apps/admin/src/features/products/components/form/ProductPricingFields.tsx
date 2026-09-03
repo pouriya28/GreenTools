@@ -1,3 +1,4 @@
+// src/features/products/components/form/ProductPricingFields.tsx
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,33 +18,64 @@ export function ProductPricingFields({ form, currentTomanPrice }: ProductPricing
   const discountType = watch("discount_type")
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="price_usd">قیمت (دلار)</Label>
-        <Input id="price_usd" type="number" min={0.01} step={0.01} {...register("price_usd", { valueAsNumber: true })} />
-        {formState.errors.price_usd && <p className="text-xs text-danger">{formState.errors.price_usd.message}</p>}
+    <div className="flex flex-col gap-5 border-t border-slate-800/80 pt-4">
+      {/* قیمت به دلار */}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="price_usd" className="text-sm font-medium text-slate-200">
+          قیمت (دلار)
+        </Label>
+        <Input
+          id="price_usd"
+          type="number"
+          min={0.01}
+          step={0.01}
+          className="h-11 border-slate-700/80 bg-slate-900/90 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+          {...register("price_usd", { valueAsNumber: true })}
+        />
+        {formState.errors.price_usd && (
+          <p className="text-xs font-medium text-rose-400">{formState.errors.price_usd.message}</p>
+        )}
         {currentTomanPrice != null && (
-          <p className="text-xs text-text-3">
-            قیمت فعلی به تومان: {formatPrice(currentTomanPrice)} — با نرخ ارز روز و بعد از ذخیره دوباره محاسبه می‌شود.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            قیمت فعلی به تومان: <span className="font-semibold text-emerald-400">{formatPrice(currentTomanPrice)}</span> — با نرخ ارز روز و بعد از ذخیره دوباره محاسبه می‌شود.
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="discount_type">نوع تخفیف</Label>
+      {/* بخش تنظیمات تخفیف */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="discount_type" className="text-sm font-medium text-slate-200">
+            نوع تخفیف
+          </Label>
           <Controller
             control={control}
             name="discount_type"
             render={({ field }) => (
-              <Select value={field.value ?? "none"} onValueChange={(value) => field.onChange(value === "none" ? null : value)}>
-                <SelectTrigger id="discount_type">
+              <Select
+                value={field.value ?? "none"}
+                onValueChange={(value) => field.onChange(value === "none" ? null : value)}
+              >
+                <SelectTrigger
+                  id="discount_type"
+                  className="h-11 w-full border-slate-700/80 bg-slate-900/90 text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+                >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون تخفیف</SelectItem>
-                  <SelectItem value="percent">درصدی</SelectItem>
-                  <SelectItem value="fixed">مبلف ثابت (تومان)</SelectItem>
+                {/* 
+                  z-[99999] و پس‌زمینه c2 (تیره شفاف با backdrop-blur) 
+                  برای جلوگیری از شفاف شدن و همپوشانی با عناصر پایین صفحه
+                */}
+                <SelectContent className="z-[99999] border-slate-700 bg-slate-900/98 p-1 text-slate-100 shadow-2xl backdrop-blur-md">
+                  <SelectItem value="none" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    بدون تخفیف
+                  </SelectItem>
+                  <SelectItem value="percent" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    درصدی
+                  </SelectItem>
+                  <SelectItem value="fixed" className="cursor-pointer rounded-md text-sm text-slate-200 focus:bg-indigo-600 focus:text-white">
+                    مبلغ ثابت (تومان)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -51,22 +83,31 @@ export function ProductPricingFields({ form, currentTomanPrice }: ProductPricing
         </div>
 
         {discountType && (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="discount_value">
+          <div className="flex flex-col gap-2 animate-in fade-in-50 duration-200">
+            <Label htmlFor="discount_value" className="text-sm font-medium text-slate-200">
               مقدار تخفیف {discountType === "percent" ? "(%)" : "(تومان)"}
             </Label>
-            <Input id="discount_value" type="number" min={0} {...register("discount_value", { valueAsNumber: true })} />
+            <Input
+              id="discount_value"
+              type="number"
+              min={0}
+              className="h-11 border-slate-700/80 bg-slate-900/90 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-150"
+              {...register("discount_value", { valueAsNumber: true })}
+            />
             {formState.errors.discount_value && (
-              <p className="text-xs text-danger">{formState.errors.discount_value.message}</p>
+              <p className="text-xs font-medium text-rose-400">{formState.errors.discount_value.message}</p>
             )}
           </div>
         )}
       </div>
 
+      {/* زمان‌بندی تخفیف */}
       {discountType && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="discount_starts_at">شروع تخفیف</Label>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 animate-in fade-in-50 duration-200">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="discount_starts_at" className="text-sm font-medium text-slate-200">
+              شروع تخفیف
+            </Label>
             <Controller
               control={control}
               name="discount_starts_at"
@@ -80,8 +121,10 @@ export function ProductPricingFields({ form, currentTomanPrice }: ProductPricing
               )}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="discount_ends_at">پایان تخفیف</Label>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="discount_ends_at" className="text-sm font-medium text-slate-200">
+              پایان تخفیف
+            </Label>
             <Controller
               control={control}
               name="discount_ends_at"
@@ -95,7 +138,7 @@ export function ProductPricingFields({ form, currentTomanPrice }: ProductPricing
               )}
             />
             {formState.errors.discount_ends_at && (
-              <p className="text-xs text-danger">{formState.errors.discount_ends_at.message}</p>
+              <p className="text-xs font-medium text-rose-400">{formState.errors.discount_ends_at.message}</p>
             )}
           </div>
         </div>

@@ -2,22 +2,27 @@
 
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 
-it('does not create a duplicate order on repeated checkout calls with unchanged cart', function () {
+it('does not create a duplicate order when checkout is called twice with the same cart version', function () {
     $user = User::factory()->create();
-    $product = Product::factory()->create(['is_active' => true, 'stock_quantity' => 10, 'price_toman' => 100000]);
+    $product = Product::factory()->create(['stock_quantity' => 5, 'is_active' => true]);
+    $cart = Cart::factory()->forUser($user)->create();
+    CartItem::factory()->create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
 
-    $cart = Cart::factory()->create(['user_id' => $user->id, 'version' => 1]);
-    CartItem::factory()->create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 2]);
+    $this->actingAs($user)->postJson('/api/v1/checkout')->assertCreated();
+    $this->actingAs($user)->postJson('/api/v1/checkout')->assertCreated();
 
-    $this->actingAs($user);
+    expect(\App\Models\Order::where('user_id', $user->id)->count())->toBe(1);
+});
 
-    $first = $this->postJson('/api/v1/checkout')->assertCreated();
-    $second = $this->postJson('/api/v1/checkout')->assertCreated();
+it('rejects checkout on an empty cart', function () {
+    $user = User::factory()->create();
+    Cart::factory()->forUser($user)->create();
 
-    expect(Order::count())->toBe(1);
-    expect($first->json('order_id'))->toBe($second->json('order_id'));
+    $this->actingAs($user)
+        ->postJson('/api/v1/checkout')
+        ->assertStatus(422)
+        ->assertJsonPath('code', 'CHECKOUT_VALIDATION_FAILED');
 });

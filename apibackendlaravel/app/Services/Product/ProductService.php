@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Services\Media\ProductMediaService;
 use App\Services\Pricing\PricingService;
 use App\Services\Slug\SlugUniquenessResolver;
+use App\Support\Html\ProductDescriptionSanitizer;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,7 @@ class ProductService
         private ProductMediaService $mediaService,
         private PricingService $pricingService,
         private SkuGenerator $skuGenerator,
+        private ProductDescriptionSanitizer $descriptionSanitizer,
     ) {}
 
     public function create(array $data, int $userId): Product
@@ -30,8 +32,8 @@ class ProductService
 
             $productData = Arr::except($data, ['meta', 'tag_ids']);
             $productData['slug'] = $this->slugResolver->resolve($data['name'], Product::class);
-            $productData['description'] = $this->sanitizeDescription($productData['description'] ?? null);
-            $productData['short_description'] = $this->sanitizeDescription($productData['short_description'] ?? null);
+            $productData['description'] = $this->descriptionSanitizer->sanitize($productData['description'] ?? null);
+            $productData['short_description'] = $this->descriptionSanitizer->sanitize($productData['short_description'] ?? null);
             $productData['created_by'] = $userId;
             $productData['updated_by'] = $userId;
 
@@ -81,11 +83,11 @@ class ProductService
             }
 
             if (array_key_exists('description', $productData)) {
-                $productData['description'] = $this->sanitizeDescription($productData['description']);
+                $productData['description'] = $this->descriptionSanitizer->sanitize($productData['description']);
             }
 
             if (array_key_exists('short_description', $productData)) {
-                $productData['short_description'] = $this->sanitizeDescription($productData['short_description']);
+                $productData['short_description'] = $this->descriptionSanitizer->sanitize($productData['short_description']);
             }
 
             // اگه قیمت دلاری عوض شد، تومان رو بلافاصله با آخرین نرخ بازمحاسبه کن.
@@ -191,11 +193,5 @@ class ProductService
         $product->tags()->detach();
         $product->meta()->delete();
         $product->forceDelete();
-    }
-
-    /** حذف تگ‌های HTML از توضیحات — ضد XSS ذخیره‌شده، چون description مستقیم نمایش داده می‌شه */
-    private function sanitizeDescription(?string $value): ?string
-    {
-        return $value !== null ? strip_tags($value) : null;
     }
 }

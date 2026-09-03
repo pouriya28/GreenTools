@@ -13,7 +13,7 @@ class Cart extends Model
 
     protected $fillable = [
         'user_id',
-        'session_key',
+        'guest_token',
         'status',
         'version',
         'expires_at',

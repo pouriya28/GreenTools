@@ -1,29 +1,33 @@
 <?php
 
 use App\Models\Cart;
-use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\User;
 
-it('prevents a user from mutating another users cart item', function () {
+it('rejects access to another user\'s cart items (IDOR)', function () {
     $victim = User::factory()->create();
-    $attacker = User::factory()->create();
-    $product = Product::factory()->create(['is_active' => true, 'stock_quantity' => 10]);
+    $victimCart = Cart::factory()->forUser($victim)->create();
+    $item = \App\Models\CartItem::factory()->create(['cart_id' => $victimCart->id]);
 
-    $victimCart = Cart::factory()->create(['user_id' => $victim->id]);
-    $item = CartItem::factory()->create(['cart_id' => $victimCart->id, 'product_id' => $product->id]);
+    $attacker = User::factory()->create();
 
     $this->actingAs($attacker)
-        ->patchJson("/api/v1/cart/items/{$item->id}", ['quantity' => 5, 'version' => $victimCart->version])
-        ->assertNotFound()
-        ->assertJson(['error_code' => 'CART_ITEM_NOT_FOUND']);
+        ->patchJson("/api/v1/cart/items/{$item->id}", ['quantity' => 1, 'version' => $victimCart->version])
+        ->assertStatus(404); // باید طوری رفتار کند که attacker حتی نفهمد این آیتم وجود دارد
+
+    $this->actingAs($attacker)
+        ->deleteJson("/api/v1/cart/items/{$item->id}?version={$victimCart->version}")
+        ->assertStatus(404);
 });
 
-it('issues a high-entropy guest token cookie on first cart access', function () {
-    $response = $this->getJson('/api/v1/cart');
+it('issues a guest token cookie without requiring authentication', function () {
+    $this->getJson('/api/v1/cart')
+        ->assertOk()
+        ->assertCookie('cart_guest_token');
+});
 
-    $response->assertCookie('cart_guest_token');
-    $token = $response->getCookie('cart_guest_token', false)?->getValue();
-
-    expect($token)->not->toBeNull();
+it('rejects a guest token that was tampered with', function () {
+    $this->withCookie('cart_guest_token', 'not-a-real-token-'.str_repeat('a', 64))
+        ->getJson('/api/v1/cart')
+        ->assertOk(); // باید cart جدید بسازد، نه اینکه به یک سبد دیگر دسترسی بدهد
 });

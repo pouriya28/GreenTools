@@ -16,12 +16,15 @@ class CartItem extends Model
         'quantity',
         'price_at_addition',
         'discount_at_addition',
+        'purchase_requirement_at_addition',
+        'purchase_confirmed',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'price_at_addition' => 'integer',
         'discount_at_addition' => 'integer',
+        'purchase_confirmed' => 'boolean',
     ];
 
     public function cart(): BelongsTo

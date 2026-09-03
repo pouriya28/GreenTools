@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Html\ProductDescriptionSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,8 +15,8 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'sku' => $this->sku,
-            'short_description' => $this->short_description,
-            'description' => $this->description,
+            'short_description' => app(ProductDescriptionSanitizer::class)->sanitize($this->short_description),
+            'description' => app(ProductDescriptionSanitizer::class)->sanitize($this->description),
 
             // مثل ProductListResource: ستون دیتابیس به 'price_toman' تغییر نام
             // کرد ولی این ریسورس هنوز از $this->price (ناموجود) می‌خوند و
@@ -39,7 +40,7 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'stock_status' => $this->stock_status,
             'weight_grams' => $this->weight_grams,
-            
+
 
             'purchase_requirement' => $this->purchase_requirement?->value,
             'purchase_requirement_label' => $this->purchase_requirement?->label(),

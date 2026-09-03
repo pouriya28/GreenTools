@@ -33,7 +33,7 @@ class InventoryReservation extends Model
 
     public function isActive(): bool
     {
-        return $this->status === ReservationStatus::ACTIVE
+        return $this->status === ReservationStatus::Active
             && $this->expires_at->isFuture();
     }
 }
