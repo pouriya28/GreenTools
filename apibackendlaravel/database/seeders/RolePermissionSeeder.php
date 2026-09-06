@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
@@ -16,10 +16,26 @@ class RolePermissionSeeder extends Seeder
             'orders.view', 'orders.update', 'orders.delete',
             'users.view', 'users.manage',
             'audit-logs.view',
+            'loyalty.manage',
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'sanctum']);
+        // Permissions that require the operation password before they can be
+        // used — checked at runtime by EnsureOperationVerified middleware.
+        $sensitive = [
+            'products.delete',
+            'categories.delete',
+            'orders.delete',
+            'users.manage',
+            'loyalty.manage',
+        ];
+
+        foreach ($permissions as $name) {
+            /** @var Permission $permission */
+            $permission = Permission::firstOrCreate(['name' => $name, 'guard_name' => 'sanctum']);
+
+            $permission->update([
+                'requires_operation_confirmation' => in_array($name, $sensitive, true),
+            ]);
         }
 
         $manager = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'sanctum']);

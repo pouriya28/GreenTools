@@ -33,17 +33,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // در لود اولیه‌ی اپ، بجای خوندن از localStorage، سعی می‌کنیم با کوکی httpOnly رفرش کنیم.
   // اگه کوکی معتبری نباشه، یعنی کاربر لاگین نیست.
-  initAuth: async () => {
-    set({ isLoading: true });
-    try {
-      const { data } = await api.post("/v1/auth/refresh");
-      get().setSession(data.data.access_token, data.data.user);
-    } catch {
+// src/store/authStore.ts
+
+initAuth: async () => {
+  set({ isLoading: true });
+  try {
+    const { data } = await api.post("/v1/auth/refresh");
+    get().setSession(data.data.access_token, data.data.user);
+  } catch (err) {
+    // Only clear the session on a definitive 401 (no valid refresh token
+    // at all). A 429 or network hiccup during the very first page-load
+    // refresh doesn't mean the user is logged out — just that this
+    // particular attempt failed; retrying later (or the next page load)
+    // can still succeed with the same still-valid cookie.
+    if (err instanceof ApiError && err.status === 401) {
       get().clearSession();
-    } finally {
-      set({ isLoading: false, isInitialized: true });
     }
-  },
+  } finally {
+    set({ isLoading: false, isInitialized: true });
+  }
+},
 
   sendOtp: async (payload) => {
     set({ isLoading: true });

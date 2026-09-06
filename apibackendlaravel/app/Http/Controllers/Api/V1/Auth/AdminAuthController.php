@@ -177,21 +177,18 @@ class AdminAuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        // خانواده‌ی refresh token رو هم باطل می‌کنیم، نه فقط access token فعلی —
-        // وگرنه کوکی refresh_token قدیمی همچنان می‌تونست session جدید بسازه.
         $rawRefreshToken = $request->cookie('refresh_token');
         if ($rawRefreshToken) {
             app(RefreshTokenService::class)->revokeByRawToken($rawRefreshToken);
         }
 
-        // همه‌ی access tokenهای این کاربر، نه فقط currentAccessToken — چون
-        // الان هر کاربر هم‌زمان توکن access و refresh (هر دو از طریق Sanctum
-        // با ability جدا) داره.
         $user->tokens()->delete();
 
         return response()->json([
             'message' => 'با موفقیت از حساب کاربری خارج شدید.',
-        ], 200)->withoutCookie('refresh_token', '/api/v1/auth/refresh');
+        ], 200)
+            ->withoutCookie('refresh_token', '/api/v1/auth')
+            ->withCookie(\Illuminate\Support\Facades\Cookie::forget('refresh_token', '/api/v1/auth/refresh'));
     }
     public function logoutAll(Request $request): JsonResponse
         {

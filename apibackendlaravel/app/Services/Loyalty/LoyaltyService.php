@@ -8,6 +8,7 @@ use App\Http\Requests\Api\Auth\SendCustomerOtpRequest;
 use App\Http\Requests\Api\Auth\VerifyCustomerOtpRequest;
 use App\Models\User;
 use App\Services\Auth\RefreshTokenService;
+use App\Services\Loyalty\LevelResolver;
 use App\Services\OtpService;
 use App\Traits\ManagesAuthTokens;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,10 @@ class CustomerOtpController extends Controller
 {
     use ManagesAuthTokens;
 
-    public function __construct(protected OtpService $otpService) {}
+    public function __construct(
+        protected OtpService $otpService,
+        private readonly LevelResolver $levelResolver,
+    ) {}
 
     public function send(SendCustomerOtpRequest $request): JsonResponse
     {
@@ -43,17 +47,21 @@ class CustomerOtpController extends Controller
             return response()->json(['message' => $result['message']], 422);
         }
 
-        // channel->value برابر است با نام ستون در دیتابیس ('phone' یا 'email')
         $field = $channel->value;
         $verifiedAtField = "{$field}_verified_at";
 
-        // user_type/is_active عمداً guarded هستند؛ به همین دلیل با تخصیص مستقیم
-        // (نه Mass Assignment) مقداردهی می‌شوند تا از privilege escalation جلوگیری شود.
         $user = User::firstOrNew([$field => $identifier]);
         if (!$user->exists) {
             $user->name = 'مشتری جدید';
             $user->user_type = 'customer';
             $user->is_active = true;
+
+            // Brand-new customers start at 0 points, so resolve and assign
+            // whatever level matches 0 points (e.g. "newcomer") right away —
+            // otherwise customer_level_id stays null until their first
+            // LoyaltyService::addPoints() call, leaving the UI with nothing
+            // to display in the meantime.
+            $user->customer_level_id = $this->levelResolver->resolve(0)?->id;
         }
 
         if (!$user->is_active) {
@@ -85,10 +93,9 @@ class CustomerOtpController extends Controller
 
         return response()->json([
             'message' => 'با موفقیت از حساب کاربری خارج شدید.',
-        ], 200)
-            ->withoutCookie('refresh_token', '/api/v1/auth')
-            ->withCookie(\Illuminate\Support\Facades\Cookie::forget('refresh_token', '/api/v1/auth/refresh'));
+        ], 200)->withoutCookie('refresh_token', '/api/v1/auth');
     }
+
     public function logoutAll(Request $request): JsonResponse
     {
         /** @var User $user */

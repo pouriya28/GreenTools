@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\V1\Auth\AdminAuthController;
 use App\Http\Controllers\Api\V1\Auth\AdminPasswordController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\V1\Auth\OperationPasswordController;
 Route::post('login', [AdminAuthController::class, 'login'])
     ->middleware('throttle:admin-login');
 
@@ -24,6 +24,10 @@ Route::middleware(['auth:sanctum', 'staff.access', 'account.active'])->group(fun
     Route::post('disable-2fa', [AdminAuthController::class, 'disable2fa']);
     Route::post('logout', [AdminAuthController::class, 'logout']);
     Route::post('logout-all', [AdminAuthController::class, 'logoutAll']);
+    Route::post('operation-password/set', [OperationPasswordController::class, 'set'])
+        ->middleware('throttle:operation-password');
+    Route::post('operation-password/verify', [OperationPasswordController::class, 'verify'])
+        ->middleware('throttle:operation-password');
     // نمونه محدودسازی بر اساس نقش/مجوز اسپیتی برای مسیرهای مدیریتی بعدی:
     // Route::middleware('permission:users.manage')->group(function () {
     //     Route::apiResource('users', StaffUserController::class);

@@ -1,11 +1,31 @@
 export type OtpChannel = "phone" | "email";
 
-// بکند فعلاً فقط user_type رو در پاسخ برمی‌گردونه (id, name, type) — نه یک آبجکت کامل یوزر.
-// اگر بعداً اندپوینت /me یا پروفایل اضافه شد، این تایپ رو کامل‌تر کن.
+export interface LoyaltyLevel {
+  code: string;
+  name: string;
+  icon: string | null;
+}
+
+export interface LoyaltyNextLevel extends LoyaltyLevel {
+  points_required: number;
+  points_remaining: number;
+}
+
+export interface LoyaltySummary {
+  points: number;
+  level: LoyaltyLevel | null;
+  next_level: LoyaltyNextLevel | null;
+  progress_percent: number | null;
+}
+
+// بکند فعلاً id, name, type رو برمی‌گردونه — loyalty فقط برای مشتری پر می‌شه،
+// برای staff همیشه null است (نه undefined) طبق LoyaltyPresenter::present.
 export interface AuthUser {
   id: number | string;
   name: string;
   type: "customer" | "staff";
+  phone?: string | null;
+  loyalty?: LoyaltySummary | null;
 }
 
 export interface SendOtpPayload {
@@ -21,7 +41,6 @@ export interface VerifyOtpPayload {
   code: string;
 }
 
-// شکل واقعی پاسخ بکند (issueTokenPair در ManagesAuthTokens.php)
 export interface AuthTokenResponse {
   status: "success";
   message: string;

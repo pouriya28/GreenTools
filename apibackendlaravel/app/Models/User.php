@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable 
+class User extends Authenticatable
 {
     use HasApiTokens, HasRoles, Notifiable;
 
@@ -21,10 +22,15 @@ class User extends Authenticatable
         'password',
     ];
 
+    // operation_password_hash and loyalty fields are intentionally excluded
+    // from $fillable — they must only ever be written by internal services
+    // (OperationPasswordController, LoyaltyService), never via a generic
+    // mass-assignment call built from raw request input.
     protected $hidden = [
         'password',
         'remember_token',
         'two_factor_secret',
+        'operation_password_hash',
     ];
 
     protected function casts(): array
@@ -37,6 +43,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
             'is_active' => 'boolean',
+            'loyalty_points' => 'integer',
         ];
     }
 
@@ -50,8 +57,13 @@ class User extends Authenticatable
         return $this->user_type === 'staff';
     }
 
-    public function canAccessPanel(Panel $panel): bool
+    public function customerLevel(): BelongsTo
     {
-        return $this->isStaff() && $this->is_active;
+        return $this->belongsTo(CustomerLevel::class, 'customer_level_id');
     }
+
+    // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
+    // panel, which has been fully replaced by the custom React admin panel.
+    // The Panel class no longer exists in this project, so this method would
+    // have caused a fatal error the moment anything tried to call it.
 }

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\LevelUpgraded;
 use App\Listeners\MergeGuestCartOnLogin;
+use App\Listeners\RecordLevelUpgradeNotification;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -97,7 +99,31 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by('checkout:'.$request->user()->id);
         });
 
+        // NEW: rate limiting for the operation-password set/verify endpoints —
+        // this is effectively a second password, so it needs the same
+        // brute-force protection as login, keyed by user + IP together.
+        RateLimiter::for('operation-password', function (Request $request) {
+            return Limit::perMinutes(15, 3)->by('op-pwd:'.$request->user()?->id.'|'.$request->ip());
+        });
+        // Refresh happens automatically on every page load/tab, unlike login which
+        // the user triggers rarely — so it needs a much higher ceiling. Keying by
+        // the refresh_token cookie itself (hashed, never the raw value) instead of
+        // just IP means a shared/NAT IP with several legitimate users doesn't
+        // throttle all of them together; only a single token being hammered does.
+        RateLimiter::for('token-refresh', function (Request $request) {
+            $rawToken = $request->cookie('refresh_token');
+            $key = $rawToken
+                ? 'refresh-token:'.hash('sha256', $rawToken)
+                : 'refresh-ip:'.$request->ip();
+
+            return Limit::perMinute(30)->by($key);
+        });
+
         // ادغام سبد مهمان با سبد کاربر، مستقل از مسیر ورود (فرم لاگین، Sanctum SPA، و...).
         Event::listen(Login::class, MergeGuestCartOnLogin::class);
+
+        // NEW: level-up notification hook — see RecordLevelUpgradeNotification
+        // for why this is intentionally minimal for now.
+        Event::listen(LevelUpgraded::class, RecordLevelUpgradeNotification::class);
     }
 }

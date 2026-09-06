@@ -78,33 +78,49 @@ api.interceptors.response.use(
     if (status === 401 && originalRequest && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
       originalRequest._retry = true;
 
-      if (!isRefreshing) {
-        isRefreshing = true;
-        try {
-          const { data: refreshData } = await refreshClient.post("/v1/auth/refresh");
-          const newAccessToken = refreshData.data.access_token as string;
+// src/lib/axios.ts — فقط بخش catch مربوط به رفرش عوض می‌شه
 
-          useAuthStore.getState().setSession(newAccessToken, refreshData.data.user);
+if (!isRefreshing) {
+  isRefreshing = true;
+  try {
+    const { data: refreshData } = await refreshClient.post("/v1/auth/refresh");
+    const newAccessToken = refreshData.data.access_token as string;
 
-          isRefreshing = false;
-          refreshQueue.forEach((cb) => cb(newAccessToken));
-          refreshQueue = [];
+    useAuthStore.getState().setSession(newAccessToken, refreshData.data.user);
 
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return api(originalRequest);
-        } catch {
-          isRefreshing = false;
-          refreshQueue.forEach((cb) => cb(null));
-          refreshQueue = [];
-          useAuthStore.getState().clearSession();
+    isRefreshing = false;
+    refreshQueue.forEach((cb) => cb(newAccessToken));
+    refreshQueue = [];
 
-          notificationService.error("نشست شما منقضی شده است.", {
-            action: { label: "ورود مجدد", onClick: () => (window.location.href = "/login") },
-            duration: 6000,
-          });
-          return Promise.reject(apiError);
-        }
-      }
+    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+    return api(originalRequest);
+  } catch (refreshError) {
+    isRefreshing = false;
+    refreshQueue.forEach((cb) => cb(null));
+    refreshQueue = [];
+
+    const refreshStatus = axios.isAxiosError(refreshError)
+      ? refreshError.response?.status
+      : undefined;
+
+    if (refreshStatus === 401) {
+      // Refresh token itself is genuinely invalid/expired/reused — this
+      // really is a logged-out session.
+      useAuthStore.getState().clearSession();
+      notificationService.error("نشست شما منقضی شده است.", {
+        action: { label: "ورود مجدد", onClick: () => (window.location.href = "/login") },
+        duration: 6000,
+      });
+    } else {
+      // 429 (rate limited), network blip, or a 5xx on the refresh endpoint —
+      // the refresh token may still be perfectly valid. Don't wipe a valid
+      // session over a transient failure; just fail this one request.
+      notificationService.error("مشکلی موقت در ارتباط با سرور پیش آمد. لطفاً دوباره تلاش کنید.");
+    }
+
+    return Promise.reject(apiError);
+  }
+}
 
       return new Promise((resolve, reject) => {
         refreshQueue.push((token) => {

@@ -6,6 +6,9 @@ import { useAuthStore } from "@/store/authStore";
 import { useCartItemCount } from "@/features/cart/hooks/useCartItemCount";
 import { CartMenu } from "@/features/cart/components/CartMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { LevelAvatar } from "@/features/loyalty/components/LevelAvatar";
+import { MaskedPhone } from "@/features/loyalty/components/MaskedPhone";
+
 
 interface ActionButtonsProps {
   onOpenMenu: () => void;
@@ -66,10 +69,8 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
             onClick={() => setIsUserMenuOpen((prev) => !prev)}
             className="flex items-center gap-2 px-3 h-10 rounded-xl bg-surface/80 border border-primary/30 text-text hover:border-primary transition-all text-xs font-medium"
           >
-            <div className="w-6 h-6 rounded-lg bg-primary/20 text-primary flex items-center justify-center font-bold">
-              {user.phone ? user.phone.slice(-4) : "U"}
-            </div>
-            <span className="max-w-[100px] truncate">{user.phone || "حساب کاربری"}</span>
+            <LevelAvatar user={user} />
+            <MaskedPhone phone={user.phone} className="max-w-[130px]" />
             <FiChevronDown className={`text-xs text-text-secondary transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`} />
           </button>
           {isUserMenuOpen && (

@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             
         ]);
+        $this->call([
+            CustomerLevelSeeder::class,
+        ]);
 
     }
 }
