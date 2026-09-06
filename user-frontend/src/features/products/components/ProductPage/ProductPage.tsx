@@ -52,7 +52,7 @@ export function ProductPage() {
             onConfirmedChange={setPurchaseConfirmed}
           />
 
-          <ProductQuantityAndCart product={product} canAddToCart={canAddToCart} />
+          <ProductQuantityAndCart product={product} canAddToCart={canAddToCart} purchaseConfirmed={purchaseConfirmed}/>
         </div>
       </div>
 

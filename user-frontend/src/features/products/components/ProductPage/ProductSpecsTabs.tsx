@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ProductDetail } from "../../types/ProductDetail";
+import { SafeHtmlContent } from "@/shared/components/SafeHtmlContent";
 
 interface ProductSpecsTabsProps {
   product: ProductDetail;
@@ -16,6 +17,8 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
+ 
+  
   const [activeTab, setActiveTab] = useState<TabKey>("description");
 
   return (
@@ -51,9 +54,12 @@ export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="py-4 text-sm leading-7 text-text-secondary"
         >
-          {activeTab === "description" && (
-            <p>{product.description ?? "توضیحاتی برای این محصول ثبت نشده است."}</p>
-          )}
+          {activeTab === "description" &&
+            (product.description ? (
+              <SafeHtmlContent html={product.description} />
+            ) : (
+              <p>توضیحاتی برای این محصول ثبت نشده است.</p>
+            ))}
 
           {activeTab === "specs" && (
             <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">

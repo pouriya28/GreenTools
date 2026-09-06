@@ -1,4 +1,4 @@
-// src/features/products/components/ProductPage/ProductPurchaseRequirementNotice.tsx
+import { Link } from "react-router-dom";
 import { FiAlertTriangle, FiTool, FiPhoneCall } from "react-icons/fi";
 import type { ProductDetail } from "../../types/ProductDetail";
 import { PURCHASE_REQUIREMENT_TONE } from "../../utils/purchaseRequirement";
@@ -36,10 +36,15 @@ export function ProductPurchaseRequirementNotice({
   const tone = PURCHASE_REQUIREMENT_TONE[requirement];
   const Icon = requirement === "restricted" ? FiAlertTriangle : FiTool;
 
-  // Mirrors the conditional-notice logic from the admin form's ProductPurchaseRequirementFields
   const showTechnicalNotice = requirement === "technical_consultation" || requirement === "restricted";
   const showInstallationNotice = requirement === "professional_installation";
   const showCompatibilityNotice = requirement !== "standard";
+
+  // محصولات «محدود» کارت جایگزین اختصاصی خودشون (RestrictedPurchaseCta) رو دارن
+  // که لینک /support رو نشون می‌ده، پس اینجا برای جلوگیری از تکرار نشونش نمی‌دیم.
+  const showContactLink = supportEnabled && requirement !== "restricted";
+  // برای «محدود» اصلاً چک‌باکسی برای آزاد کردن دکمه‌ی افزودن به سبد وجود نداره.
+  const showConfirmationCheckbox = confirmationRequired && requirement !== "restricted";
 
   return (
     <div className={`flex flex-col gap-3 rounded-xl border p-4 ${TONE_CLASSES[tone]}`} dir="rtl">
@@ -55,17 +60,17 @@ export function ProductPurchaseRequirementNotice({
         </div>
       )}
 
-      {supportEnabled && (
-        <a
-          href="/support"
+      {showContactLink && (
+        <Link
+          to="/support"
           className="flex w-fit items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text transition-colors duration-150 hover:text-primary"
         >
           <FiPhoneCall />
           تماس با پشتیبانی قبل از خرید
-        </a>
+        </Link>
       )}
 
-      {confirmationRequired && (
+      {showConfirmationCheckbox && (
         <label className="flex items-center gap-2 text-sm text-text">
           <input
             type="checkbox"

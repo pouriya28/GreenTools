@@ -1,3 +1,4 @@
+//src/lib/axios.ts
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { ApiError, type ApiErrorCode } from "@/shared/error/ApiError";
 import { getSafeMessage } from "@/shared/error/statusConfig";

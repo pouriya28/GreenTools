@@ -19,7 +19,16 @@ const ProductPage = lazy(() =>
     default: m.ProductPage,
   }))
 )
-
+const CartPage = lazy(() =>
+  import("@/features/cart/components/CartPage").then((m) => ({
+    default: m.CartPage,
+  })),
+)
+const SupportPage = lazy(() =>
+  import("@/pages/Support/SupportPage").then((m) => ({
+    default: m.SupportPage,
+  })),
+)
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<PageLoader />}>{element}</Suspense>
 }
@@ -33,6 +42,8 @@ export const router = createBrowserRouter([
       { index: true, element: withSuspense(<Home />) },
       { path: "products", element: withSuspense(<ProductsPage />) },
       { path: "products/:slug", element: withSuspense(<ProductPage />) },
+      { path: "cart", element: withSuspense(<CartPage />) },
+      { path: "support", element: withSuspense(<SupportPage />) },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
