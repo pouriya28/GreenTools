@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1\Checkout;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCheckoutRequest extends FormRequest
 {
@@ -17,6 +18,13 @@ class StoreCheckoutRequest extends FormRequest
     {
         return [
             'address_id' => ['required', 'integer'],
+            // فقط روش ارسال فعال قابل انتخاب است؛ روش غیرفعال/حذف‌شده رد می‌شود
+            // (همان دفاعی که در ShippingMethodUnavailableException هم تکرار شده).
+            'shipping_method_id' => [
+                'required',
+                'integer',
+                Rule::exists('shipping_methods', 'id')->where(fn ($query) => $query->where('is_active', true)),
+            ],
         ];
     }
 }

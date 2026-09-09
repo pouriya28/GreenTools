@@ -169,4 +169,13 @@ class CartService
         Cart::where('id', $cart->id)->update(['version' => DB::raw('version + 1')]);
         $cart->refresh();
     }
+
+    public function subtotal(Cart $cart): int
+    {
+        $cart->loadMissing('items');
+
+        return (int) $cart->items->sum(
+            fn (CartItem $item) => ($item->price_at_addition - $item->discount_at_addition) * $item->quantity
+        );
+    }
 }

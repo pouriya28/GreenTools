@@ -2,6 +2,7 @@
 
 namespace App\Services\Checkout;
 
+use App\Contracts\ShippingCalculatorInterface;
 use App\Enums\OrderStatus;
 use App\Exceptions\Cart\InsufficientStockException;
 use App\Exceptions\Cart\ProductUnavailableException;
@@ -16,8 +17,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\ShippingMethod;
 use App\Models\TechnicalConsultationRequest;
 use App\Services\AddressService;
+use App\Services\Cart\CartService;
 use App\Services\Inventory\StockAvailabilityService;
 use App\Services\StoreStatusService;
 use Illuminate\Support\Facades\DB;
@@ -30,42 +33,48 @@ class CheckoutService
         private readonly StockAvailabilityService $stockAvailability,
         private readonly AddressService $addressService,
         private readonly StoreStatusService $storeStatus,
+        private readonly CartService $cartService,
+        private readonly ShippingCalculatorInterface $shippingCalculator,
     ) {
     }
 
-    public function checkout(Cart $cart, Address $address): Order
+    public function checkout(Cart $cart, Address $address, int $shippingMethodId): Order
     {
-        // اولین چک: اگر فروشگاه توسط ادمین بسته شده، هیچ سفارش جدیدی ساخته نمی‌شود.
-        // سفارش‌های قبلی (پرداخت/ارسال) تحت تاثیر این قرار نمی‌گیرند.
         if (! $this->storeStatus->isOpen()) {
             throw new StoreClosedException($this->storeStatus->current()->closed_reason);
         }
 
-        // دفاع دوم در برابر IDOR: حتی اگر لایه‌ی کنترلر رد شود، سرویس هم خودش چک می‌کند.
         if ($address->user_id !== $cart->user_id) {
             throw new AddressNotOwnedException($address->id);
         }
 
-        // باگ‌فیکس: آدرس باید در idempotency key لحاظ شود؛ وگرنه تعویض آدرس بدون
-        // تریگ کردن سبد، همان سفارش قبلی با آدرس قدیمی برگردانده می‌شد.
-        $idempotencyKey = $this->buildIdempotencyKey($cart, $address);
+        // Shipping method is now part of the idempotency key too, for the same
+        // reason address was added before: changing the shipping method without
+        // bumping the cart version must not silently return a stale order.
+        $idempotencyKey = $this->buildIdempotencyKey($cart, $address, $shippingMethodId);
 
-        // Duplicate click / retry with identical cart + address state — return the same order,
-        // never create a second one. This check happens before opening the transaction.
         $existing = Order::where('idempotency_key', $idempotencyKey)->first();
         if ($existing !== null) {
             return $existing;
         }
 
-        return DB::transaction(function () use ($cart, $address, $idempotencyKey) {
+        return DB::transaction(function () use ($cart, $address, $shippingMethodId, $idempotencyKey) {
             $cart->loadMissing('items.product');
 
             if ($cart->items->isEmpty()) {
                 throw new EmptyCartException();
             }
 
+            $shippingMethod = ShippingMethod::where('id', $shippingMethodId)
+                ->where('is_active', true)
+                ->first();
+
+            if ($shippingMethod === null) {
+                throw new \App\Exceptions\Shipping\ShippingMethodUnavailableException($shippingMethodId);
+            }
+
             $lockedProducts = [];
-            $orderTotal = 0;
+            $productsTotal = 0;
             $lineItems = [];
 
             foreach ($cart->items as $cartItem) {
@@ -89,7 +98,7 @@ class CheckoutService
                 // Recalculate authoritative price at checkout time — never trust the cart snapshot.
                 $unitPrice = $product->final_price;
                 $subtotal = $unitPrice * $cartItem->quantity;
-                $orderTotal += $subtotal;
+                $productsTotal += $subtotal;
 
                 $lockedProducts[] = $product;
                 $lineItems[] = [
@@ -100,15 +109,30 @@ class CheckoutService
                 ];
             }
 
+            // Weight/quote computed from the same locked cart items used for pricing,
+            // so a race between stock-lock and shipping-quote can't happen.
+            $weightGrams = $this->cartService->totalWeightGrams($cart);
+            $shippingQuote = $this->shippingCalculator->calculate(
+                $shippingMethod,
+                $weightGrams,
+                $productsTotal,
+                $address,
+            );
+
+            $grandTotal = $productsTotal + $shippingQuote->cost;
+
             $order = Order::create([
                 'user_id' => $cart->user_id,
                 'cart_id' => $cart->id,
                 'status' => OrderStatus::PendingPayment,
-                'total_amount' => $orderTotal,
+                'total_amount' => $grandTotal,
                 'idempotency_key' => $idempotencyKey,
+                'shipping_method_id_snapshot' => $shippingMethod->id,
+                'shipping_method_name_snapshot' => $shippingMethod->name,
+                'shipping_calculation_type_snapshot' => $shippingMethod->calculation_type->value,
+                'shipping_cost' => $shippingQuote->cost,
             ]);
 
-            // Snapshot آدرس دقیقاً در همان Transaction ساخت سفارش — از این لحظه غیرقابل‌تغییر است.
             $this->addressService->createSnapshot($order, $address);
 
             foreach ($lineItems as $line) {
@@ -134,7 +158,7 @@ class CheckoutService
             Payment::create([
                 'order_id' => $order->id,
                 'gateway' => config('payments.default_gateway', 'abstract'),
-                'amount' => $orderTotal,
+                'amount' => $grandTotal,
                 'status' => 'pending',
             ]);
 
@@ -158,11 +182,11 @@ class CheckoutService
         }
     }
 
-    private function buildIdempotencyKey(Cart $cart, Address $address): string
+    private function buildIdempotencyKey(Cart $cart, Address $address, int $shippingMethodId): string
     {
         return hash_hmac(
             'sha256',
-            "{$cart->user_id}:{$cart->id}:{$cart->version}:{$address->id}",
+            "{$cart->user_id}:{$cart->id}:{$cart->version}:{$address->id}:{$shippingMethodId}",
             config('app.key')
         );
     }

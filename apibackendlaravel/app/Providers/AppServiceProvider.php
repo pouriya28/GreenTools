@@ -41,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\PaymentGatewayInterface::class,
             \App\Services\Payments\AbstractPaymentGateway::class
         );
+        $this->app->bind(
+            \App\Contracts\ShippingCalculatorInterface::class,
+            \App\Services\Shipping\ManualShippingCalculator::class
+        );
     }
 
     public function boot(): void
@@ -48,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         // پالیسی‌های محصول/دسته‌بندی - پنل Filament و هر جای دیگه‌ی برنامه از همینا استفاده می‌کنن
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
-
+        Gate::policy(\App\Models\ShippingMethod::class, \App\Policies\ShippingMethodPolicy::class);
         // فقط این مدل‌ها اجازه دارن taggable/metable باشن — بدون این، هر مدلی
         // (حتی User یا Order) از نظر DB می‌تونست به‌عنوان taggable_type/metable_type ثبت بشه.
         //
