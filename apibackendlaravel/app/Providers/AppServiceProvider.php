@@ -118,7 +118,12 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(30)->by($key);
         });
-
+        RateLimiter::for('reverse-geocode', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+        RateLimiter::for('search-address', function (Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+        });
         // ادغام سبد مهمان با سبد کاربر، مستقل از مسیر ورود (فرم لاگین، Sanctum SPA، و...).
         Event::listen(Login::class, MergeGuestCartOnLogin::class);
 

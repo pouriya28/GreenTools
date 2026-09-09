@@ -1,106 +1,82 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1\Auth;
+namespace App\Services\Loyalty;
 
-use App\Enums\OtpChannel;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Auth\SendCustomerOtpRequest;
-use App\Http\Requests\Api\Auth\VerifyCustomerOtpRequest;
+use App\Events\LevelUpgraded;
+use App\Models\LoyaltyPointTransaction;
 use App\Models\User;
-use App\Services\Auth\RefreshTokenService;
-use App\Services\Loyalty\LevelResolver;
-use App\Services\OtpService;
-use App\Traits\ManagesAuthTokens;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
-class CustomerOtpController extends Controller
+class LoyaltyService
 {
-    use ManagesAuthTokens;
+    public function __construct(private readonly LevelResolver $levelResolver) {}
 
-    public function __construct(
-        protected OtpService $otpService,
-        private readonly LevelResolver $levelResolver,
-    ) {}
-
-    public function send(SendCustomerOtpRequest $request): JsonResponse
-    {
-        $channel = OtpChannel::from($request->string('channel')->value());
-        $identifier = $request->identifier();
-
-        $result = $this->otpService->send($identifier, $channel);
-
-        return response()->json(
-            ['message' => $result['message']],
-            $result['status'] ? 200 : ($result['code'] ?? 422)
-        );
-    }
-
-    public function verify(VerifyCustomerOtpRequest $request): JsonResponse
-    {
-        $channel = OtpChannel::from($request->string('channel')->value());
-        $identifier = $request->identifier();
-
-        $result = $this->otpService->verify($identifier, $channel, $request->string('code')->value());
-
-        if (!$result['status']) {
-            return response()->json(['message' => $result['message']], 422);
+    /**
+     * The ONLY sanctioned entry point for increasing a user's loyalty points.
+     * In the current business model points are never spent, so there is
+     * intentionally no "deduct" counterpart — adding one would reopen all
+     * the race-condition and negative-balance concerns this design avoids.
+     *
+     * Wrapped in a DB transaction with a row lock on the user, so two
+     * concurrent grants (e.g. an order completing and a review being
+     * submitted at nearly the same instant) can never silently overwrite
+     * one another (the classic "lost update" problem).
+     */
+    public function addPoints(
+        int $userId,
+        int $points,
+        string $type,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?string $description = null,
+        ?int $grantedBy = null,
+    ): User {
+        if ($points <= 0) {
+            throw new InvalidArgumentException('Loyalty points to add must be a positive integer.');
         }
 
-        $field = $channel->value;
-        $verifiedAtField = "{$field}_verified_at";
+        return DB::transaction(function () use ($userId, $points, $type, $referenceType, $referenceId, $description, $grantedBy) {
+            /** @var User $user */
+            $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
-        $user = User::firstOrNew([$field => $identifier]);
-        if (!$user->exists) {
-            $user->name = 'مشتری جدید';
-            $user->user_type = 'customer';
-            $user->is_active = true;
+            $previousLevelId = $user->customer_level_id;
 
-            // Brand-new customers start at 0 points, so resolve and assign
-            // whatever level matches 0 points (e.g. "newcomer") right away —
-            // otherwise customer_level_id stays null until their first
-            // LoyaltyService::addPoints() call, leaving the UI with nothing
-            // to display in the meantime.
-            $user->customer_level_id = $this->levelResolver->resolve(0)?->id;
-        }
+            LoyaltyPointTransaction::create([
+                'user_id' => $user->id,
+                'type' => $type,
+                'points' => $points,
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
+                'description' => $description,
+                'granted_by' => $grantedBy,
+            ]);
 
-        if (!$user->is_active) {
-            return response()->json([
-                'message' => 'حساب کاربری شما مسدود شده است.',
-            ], 403);
-        }
+            $newTotal = $user->loyalty_points + $points;
+            $user->loyalty_points = $newTotal;
 
-        if (!$user->{$verifiedAtField}) {
-            $user->{$verifiedAtField} = now();
-        }
-        $user->last_login_at = now();
-        $user->save();
+            $resolvedLevel = $this->levelResolver->resolve($newTotal);
+            $levelChanged = $resolvedLevel && $resolvedLevel->id !== $previousLevelId;
 
-        return $this->issueTokenPair($user, 'customer_auth', ['customer:api']);
-    }
+            if ($levelChanged) {
+                $user->customer_level_id = $resolvedLevel->id;
+            }
 
-    public function logout(Request $request): JsonResponse
-    {
-        /** @var User $user */
-        $user = $request->user();
+            $user->save();
 
-        $rawRefreshToken = $request->cookie('refresh_token');
-        if ($rawRefreshToken) {
-            app(RefreshTokenService::class)->revokeByRawToken($rawRefreshToken);
-        }
+            Log::info('loyalty.points_added', [
+                'user_id' => $user->id,
+                'points' => $points,
+                'type' => $type,
+                'new_total' => $newTotal,
+            ]);
 
-        $user->tokens()->delete();
+            if ($levelChanged) {
+                event(new LevelUpgraded($user, $previousLevelId, $resolvedLevel->id));
+            }
 
-        return response()->json([
-            'message' => 'با موفقیت از حساب کاربری خارج شدید.',
-        ], 200)->withoutCookie('refresh_token', '/api/v1/auth');
-    }
-
-    public function logoutAll(Request $request): JsonResponse
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        return $this->revokeAllSessions($user);
+            return $user->fresh(['customerLevel']);
+        });
     }
 }

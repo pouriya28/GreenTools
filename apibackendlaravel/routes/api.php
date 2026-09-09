@@ -42,3 +42,6 @@ Route::prefix('v1')->group(base_path('routes/api/v1/pricing.php'));
 // این مسیر اشاره دهد.
 Route::prefix('v1')->group(base_path('routes/api/v1/exchange-rates.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/loyalty.php'));
+Route::prefix('v1')->group(base_path('routes/api/v1/addresses.php'));
+Route::prefix('v1')->group(base_path('routes/api/v1/map.php'));
+Route::prefix('v1')->group(base_path('routes/api/v1/location.php'));

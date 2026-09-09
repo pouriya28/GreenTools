@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+
 class Order extends Model
 {
     // Guarded, not fillable: every write MUST go through CheckoutService/PaymentService,
@@ -37,9 +38,16 @@ class Order extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
     public function shipment(): HasOne
     {
         return $this->hasOne(Shipment::class);
+    }
+
+    // جدید: هر سفارش دقیقاً یک Snapshot غیرقابل‌تغییر از آدرس زمان خرید دارد.
+    public function addressSnapshot(): HasOne
+    {
+        return $this->hasOne(OrderAddressSnapshot::class);
     }
 
     public function technicalConsultationRequests(): HasMany

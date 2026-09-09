@@ -29,6 +29,11 @@ const SupportPage = lazy(() =>
     default: m.SupportPage,
   })),
 )
+const CheckoutPage = lazy(() =>
+  import("@/features/checkout/components/CheckoutPage").then((m) => ({
+    default: m.CheckoutPage,
+  })),
+)
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<PageLoader />}>{element}</Suspense>
 }
@@ -43,6 +48,7 @@ export const router = createBrowserRouter([
       { path: "products", element: withSuspense(<ProductsPage />) },
       { path: "products/:slug", element: withSuspense(<ProductPage />) },
       { path: "cart", element: withSuspense(<CartPage />) },
+      { path: "checkout", element: withSuspense(<CheckoutPage />) },
       { path: "support", element: withSuspense(<SupportPage />) },
       { path: "*", element: <NotFoundPage /> },
     ],

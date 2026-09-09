@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -60,6 +61,10 @@ class User extends Authenticatable
     public function customerLevel(): BelongsTo
     {
         return $this->belongsTo(CustomerLevel::class, 'customer_level_id');
+    }
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
     }
 
     // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
