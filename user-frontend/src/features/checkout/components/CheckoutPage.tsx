@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AddressList } from "@/features/address"
+import { OrderSummary } from "@/features/cart/components/OrderSummary"
 import { useCart } from "@/features/cart/hooks/useCart"
-import { formatToman } from "@/features/cart/utils/formatToman"
 import { useCheckout } from "../hooks/useCheckout"
 import { ApiError } from "@/shared/error/ApiError"
 
@@ -76,17 +76,8 @@ export function CheckoutPage() {
 					/>
 				</div>
 
-				<div className="flex flex-col gap-4 rounded-xl border border-border bg-bg-2 p-5">
-					<h2 className="font-bold text-text">خلاصه سفارش</h2>
-					<div className="flex items-center justify-between text-sm">
-						<span className="text-text-secondary">تعداد اقلام</span>
-						<span className="text-text">{cart.items_count.toLocaleString("fa-IR")}</span>
-					</div>
-					<div className="h-px bg-border" />
-					<div className="flex items-center justify-between text-base">
-						<span className="font-bold text-text">جمع کل</span>
-						<span className="font-bold text-primary">{formatToman(cart.subtotal)}</span>
-					</div>
+				<div className="flex flex-col gap-4">
+					<OrderSummary cart={cart} />
 
 					{errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
 					{!selectedAddressId && (
@@ -99,7 +90,7 @@ export function CheckoutPage() {
 						onClick={handleConfirm}
 						className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
 					>
-						{checkout.isPending ? "در حال در و ارسال…" : "تایید نهایی و ثبت سفارش"}
+						{checkout.isPending ? "در حال ثبت و ارسال…" : "تایید نهایی و ثبت سفارش"}
 					</button>
 				</div>
 			</div>
