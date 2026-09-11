@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CloseStoreRequest;
+use App\Http\Requests\Api\V1\StoreStatus\CloseStoreRequest;
 use App\Http\Responses\ApiResponse;
 use App\Services\StoreStatusService;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class StoreStatusController extends Controller
 
     public function open(Request $request)
     {
-        // همان permission بستن برای باز کردن هم لازم است — هر دو عمل حساسیتیکسان دارند.
+        // همان permission بستن برای باز کردن هم لازم است — هر دو عمل حساسیت یکسان دارند.
         abort_unless($request->user()?->can('store.manage-status'), 403);
 
         $status = $this->storeStatusService->open($request->user());

@@ -178,4 +178,12 @@ class CartService
             fn (CartItem $item) => ($item->price_at_addition - $item->discount_at_addition) * $item->quantity
         );
     }
+    public function totalWeightGrams(Cart $cart): int
+    {
+        $cart->loadMissing('items.product');
+
+        return (int) $cart->items->sum(
+            fn (CartItem $item) => ($item->product->weight_grams ?? 0) * $item->quantity
+        );
+    }
 }

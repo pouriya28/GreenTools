@@ -65,6 +65,7 @@ class AppServiceProvider extends ServiceProvider
             'category' => Category::class,
             'product' => Product::class,
             'user' => User::class,
+            
             // 'blog' => \App\Models\Blog::class, // وقتی مدل Blog ساخته شد اضافه کن
         ]);
 
@@ -128,6 +129,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('search-address', function (Request $request) {
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
         });
+
         // ادغام سبد مهمان با سبد کاربر، مستقل از مسیر ورود (فرم لاگین، Sanctum SPA، و...).
         Event::listen(Login::class, MergeGuestCartOnLogin::class);
 

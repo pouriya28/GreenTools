@@ -67,6 +67,7 @@ trait ManagesAuthTokens
                     'name' => $user->name,
                     'type' => $user->user_type,
                     'phone' => $user->phone,
+                    'email' => $user->email,
                     'loyalty' => app(LoyaltyPresenter::class)->present($user),
                 ],
             ],

@@ -6,6 +6,7 @@ import { useTheme } from "@/shared/theme/useTheme"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { logoutRequest } from "@/features/auth/api/authApi"
 import { LogoutConfirmDialog } from "./LogoutConfirmDialog"
+import { StoreStatusToggle } from "@/features/storeStatus/components/StoreStatusToggle"
 
 export function Topbar() {
   const { theme, toggleTheme } = useTheme()
@@ -32,8 +33,9 @@ export function Topbar() {
     <>
       <header className="flex h-16 items-center justify-between border-b border-border bg-bg-1 px-6">
         <div className="text-sm text-text-3">{/* breadcrumb بعداً */}</div>
-
         <div className="flex items-center gap-3">
+          <StoreStatusToggle />
+          <div className="mx-1 h-6 w-px bg-border" />
           <button
             onClick={toggleTheme}
             className="rounded-md p-2 text-text-2 hover:bg-bg-3 hover:text-text-1"
@@ -45,16 +47,13 @@ export function Topbar() {
               <Moon className="h-[18px] w-[18px]" />
             )}
           </button>
-
           <div className="mx-1 h-6 w-px bg-border" />
-
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-sm font-semibold text-white">
               {initials}
             </div>
             <span className="text-sm text-text-1">{user?.name}</span>
           </div>
-
           <button
             onClick={() => setLogoutDialogOpen(true)}
             className="rounded-md p-2 text-text-2 hover:bg-danger/10 hover:text-danger"
@@ -64,7 +63,6 @@ export function Topbar() {
           </button>
         </div>
       </header>
-
       <LogoutConfirmDialog
         open={logoutDialogOpen}
         onOpenChange={setLogoutDialogOpen}

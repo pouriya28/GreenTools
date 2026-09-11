@@ -8,36 +8,74 @@ interface OrderSummaryProps {
 	className?: string
 	/** عنوان بالای باکس؛ در صورت نیاز به مخفی‌کردن مقدار "" بدهید */
 	title?: string
+	/**
+	 * هزینه‌ی ارسال محاسبه‌شده (از /v1/shipping-quote). `undefined` یعنی این بخش اصلاً
+	 * نمایش داده نشود (مثلاً در صفحه‌ی سبد که هنوز روش ارسال انتخاب نشده است).
+	 */
+	shippingCost?: number
+	/** نام روش ارسال انتخاب‌شده، کنار برچسب هزینه‌ی ارسال نمایش داده می‌شود. */
+	shippingMethodName?: string
+	/** وقتی استعلام هزینه‌ی ارسال در حال انجام است (بعد از تعویض روش ارسال). */
+	isShippingLoading?: boolean
 }
 
 /**
- * نمایش فقط‌خواندنیِ اقلام سبد/سفارش + جمع کل.
+ * نمایش فقط‌خواندنیِ اقلام سبد/سفارش + جمع کل (+ در صورت وجود، هزینه‌ی ارسال و مبلغ نهایی).
  * بدون هیچ اکشنی (دکمه/ناوبری) تا در هر جای اپ (چک‌اوت، صفحه سبد، مودال پیش‌نمایش و…) قابل استفاده باشد.
  */
-export function OrderSummary({ cart, className = "", title = "خلاصه سفارش" }: OrderSummaryProps) {
-	return (
-		<div
-			className={`flex flex-col gap-4 rounded-xl border border-border bg-bg-2 p-5 ${className}`}
-			dir="rtl"
-		>
-			{title && <h2 className="font-bold text-text">{title}</h2>}
+export function OrderSummary({
+	cart,
+	className = "",
+	title = "خلاصه سفارش",
+	shippingCost,
+	shippingMethodName,
+	isShippingLoading = false,
+}: OrderSummaryProps) {
+	const hasShippingSection = shippingCost !== undefined || isShippingLoading
+	const grandTotal = shippingCost !== undefined ? cart.subtotal + shippingCost : null
 
+	return (
+		<div className={`flex flex-col gap-4 rounded-xl border border-border bg-bg-2 p-5 ${className}`} dir="rtl">
+			{title && <h2 className="font-bold text-text">{title}</h2>}
 			<ul className="flex max-h-80 flex-col gap-3 overflow-y-auto pl-1 sm:max-h-96">
 				{cart.items.map((item) => (
 					<OrderSummaryItem key={item.id} item={item} />
 				))}
 			</ul>
-
 			<div className="h-px bg-border" />
-
 			<div className="flex items-center justify-between text-sm">
 				<span className="text-text-secondary">تعداد اقلام</span>
 				<span className="text-text">{cart.items_count.toLocaleString("fa-IR")}</span>
 			</div>
+			<div className="flex items-center justify-between text-sm">
+				<span className="text-text-secondary">جمع اقلام</span>
+				<span className="text-text">{formatToman(cart.subtotal)}</span>
+			</div>
+
+			{hasShippingSection && (
+				<div className="flex items-center justify-between text-sm">
+					<span className="text-text-secondary">
+						هزینه‌ی ارسال{shippingMethodName ? ` (${shippingMethodName})` : ""}
+					</span>
+					<span className="text-text">
+						{isShippingLoading
+							? "در حال محاسبه…"
+							: shippingCost === 0
+								? "رایگان"
+								: shippingCost !== undefined
+									? formatToman(shippingCost)
+									: "—"}
+					</span>
+				</div>
+			)}
+
+			<div className="h-px bg-border" />
 
 			<div className="flex items-center justify-between text-base">
-				<span className="font-bold text-text">جمع کل</span>
-				<span className="font-bold text-primary">{formatToman(cart.subtotal)}</span>
+				<span className="font-bold text-text">{grandTotal !== null ? "مبلغ نهایی قابل پرداخت" : "جمع کل"}</span>
+				<span className="font-bold text-primary">
+					{formatToman(grandTotal !== null ? grandTotal : cart.subtotal)}
+				</span>
 			</div>
 		</div>
 	)
@@ -51,11 +89,7 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
 		<li className="flex items-center gap-3">
 			<div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-bg-3">
 				{item.image_url ? (
-					<img
-						src={item.image_url}
-						alt={item.product_name ?? ""}
-						className="h-full w-full object-cover"
-					/>
+					<img src={item.image_url} alt={item.product_name ?? ""} className="h-full w-full object-cover" />
 				) : (
 					<div className="flex h-full w-full items-center justify-center text-center text-[10px] leading-tight text-text-secondary">
 						بدون
@@ -64,17 +98,12 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
 					</div>
 				)}
 			</div>
-
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
-				<p className="truncate text-sm font-medium text-text">
-					{item.product_name ?? "محصول حذف‌شده"}
-				</p>
-
+				<p className="truncate text-sm font-medium text-text">{item.product_name ?? "محصول حذف‌شده"}</p>
 				<div className="flex items-center gap-1.5 text-xs text-text-secondary">
 					<span>{item.quantity.toLocaleString("fa-IR")} ×</span>
 					<span>{formatToman(item.unit_price - item.unit_discount)}</span>
 				</div>
-
 				{hasWarning && (
 					<div className="flex flex-wrap gap-1">
 						{isRemoved && (
@@ -95,7 +124,6 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
 					</div>
 				)}
 			</div>
-
 			<span className="shrink-0 text-sm font-bold text-text">{formatToman(item.line_total)}</span>
 		</li>
 	)

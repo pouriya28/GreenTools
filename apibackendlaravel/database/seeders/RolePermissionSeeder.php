@@ -16,7 +16,7 @@ class RolePermissionSeeder extends Seeder
             'orders.view', 'orders.update', 'orders.delete',
             'users.view', 'users.manage',
             'audit-logs.view',
-            'loyalty.manage', 'store.manage-status',
+            'loyalty.manage', 'store.manage-status','shipping.manage','comments.moderate', 'comments.delete',
         ];
 
         // Permissions that require the operation password before they can be

@@ -8,7 +8,7 @@ use App\Http\Requests\Api\V1\Shipping\StoreShippingMethodRequest;
 use App\Http\Requests\Api\V1\Shipping\UpdateShippingMethodRequest;
 use App\Http\Resources\Admin\ShippingMethodResource;
 use App\Models\ShippingMethod;
-use App\Support\Http\ApiResponse;
+use App\Http\Responses\ApiResponse;
 
 class ShippingMethodController extends Controller
 {
@@ -25,7 +25,7 @@ class ShippingMethodController extends Controller
     {
         $method = ShippingMethod::create($request->validated());
 
-        return ApiResponse::success(data: new ShippingMethodResource($method), statusCode: 201);
+        return ApiResponse::success(data: new ShippingMethodResource($method), status: 201);
     }
 
     public function show(ShippingMethod $shippingMethod): \Illuminate\Http\JsonResponse
@@ -50,6 +50,6 @@ class ShippingMethodController extends Controller
         // the nullOnDelete FK, so past orders are unaffected.
         $shippingMethod->delete();
 
-        return ApiResponse::success(statusCode: 204);
+        return ApiResponse::success(status: 204);
     }
 }

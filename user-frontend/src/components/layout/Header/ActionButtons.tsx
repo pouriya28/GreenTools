@@ -7,7 +7,7 @@ import { useCartItemCount } from "@/features/cart/hooks/useCartItemCount";
 import { CartMenu } from "@/features/cart/components/CartMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { LevelAvatar } from "@/features/loyalty/components/LevelAvatar";
-import { MaskedPhone } from "@/features/loyalty/components/MaskedPhone";
+import { UserIdentity } from "@/shared/components/UserIdentity";
 
 
 interface ActionButtonsProps {
@@ -70,7 +70,7 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
             className="flex items-center gap-2 px-3 h-10 rounded-xl bg-surface/80 border border-primary/30 text-text hover:border-primary transition-all text-xs font-medium"
           >
             <LevelAvatar user={user} />
-            <MaskedPhone phone={user.phone} className="max-w-[130px]" />
+            <UserIdentity user={user} className="max-w-[130px]" />
             <FiChevronDown className={`text-xs text-text-secondary transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`} />
           </button>
           {isUserMenuOpen && (

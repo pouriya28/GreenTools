@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Auth\RefreshTokenService;
 use App\Services\OtpService;
 use App\Traits\ManagesAuthTokens;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -67,6 +68,8 @@ class CustomerOtpController extends Controller
         }
         $user->last_login_at = now();
         $user->save();
+
+        event(new Login('customer_auth', $user, false));
 
         return $this->issueTokenPair($user, 'customer_auth', ['customer:api']);
     }

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('type', 50); // registration, order_completed, review, manual_admin_grant, ...
-            $table->integer('points'); // always positive; this ledger is add-only by design
+            $table->integer('points')->default(0); // always positive; this ledger is add-only by design
             $table->string('reference_type', 100)->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
             $table->string('description', 500)->nullable();

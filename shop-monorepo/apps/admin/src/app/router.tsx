@@ -7,6 +7,7 @@ import TrashedCategoriesPage from "@/features/categories/pages/Trashedcategories
 import ProductsPage from "@/features/products/pages/ProductsPage"
 import TrashedProductsPage from "@/features/products/pages/TrashedProductsPage"
 import PricingPage from "@/features/pricing/pages/PricingPage"
+import ShippingMethodsPage from "@/features/shippingMethods/pages/ShippingMethodsPage"
 
 function Placeholder({ title }: { title: string }) {
   return <div className="text-xl font-semibold text-text-1">{title}</div>
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
           // پیاده‌سازی شده، روی هر درخواست API به صورت 403 اعمال می‌شوند (AuthUser فعلاً فقط
           // id/name/type رو دارد، لیست permission جزو‌جزی ندارد).
           { path: "pricing", element: <PricingPage /> },
+          {
+            path: "shipping-methods",
+            element: <ShippingMethodsPage />,
+          }
         ],
       },
     ],

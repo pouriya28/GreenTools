@@ -1,7 +1,7 @@
 // src/components/Sidebar.tsx
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, FolderTree, Package, Trash2, ChevronRight, Coins } from 'lucide-react'
+import { LayoutDashboard, FolderTree, Package, Trash2, ChevronRight, Coins, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/products', label: 'محصولات', icon: Package },
   // بخش جدید: مدیریت نرخ ارز دستی (override) و بررسی/تایید پیشنهادهای قیمت.
   { to: '/pricing', label: 'نرخ ارز و قیمت', icon: Coins },
+  { to: '/shipping-methods', label: 'روش‌های ارسال', icon: Truck },
 ]
 
 export function Sidebar() {

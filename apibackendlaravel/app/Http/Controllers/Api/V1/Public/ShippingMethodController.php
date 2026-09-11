@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ShippingMethodResource;
 use App\Models\ShippingMethod;
-use App\Support\Http\ApiResponse;
+use App\Http\Responses\ApiResponse;
 
 class ShippingMethodController extends Controller
 {

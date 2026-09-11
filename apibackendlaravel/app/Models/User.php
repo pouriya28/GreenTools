@@ -66,6 +66,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Address::class);
     }
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 
     // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
     // panel, which has been fully replaced by the custom React admin panel.

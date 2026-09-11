@@ -10,7 +10,7 @@ use App\Http\Resources\ShippingQuoteResource;
 use App\Models\Cart;
 use App\Models\ShippingMethod;
 use App\Services\Cart\CartService;
-use App\Support\Http\ApiResponse;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 
 class ShippingQuoteController extends Controller
@@ -25,12 +25,13 @@ class ShippingQuoteController extends Controller
     {
         /** @var Cart $cart */
         $cart = $request->attributes->get('current_cart');
-
         $shippingMethod = ShippingMethod::active()->findOrFail($request->integer('shipping_method_id'));
 
-        $weightGrams = $this->cartService->totalWeightGrams($cart);
-        $subtotal = $this->cartService->subtotal($cart);
+        $weightGrams = $shippingMethod->calculation_type === 'fixed'
+            ? 0
+            : $this->cartService->totalWeightGrams($cart);
 
+        $subtotal = $this->cartService->subtotal($cart);
         $quote = $this->shippingCalculator->calculate($shippingMethod, $weightGrams, $subtotal);
 
         return ApiResponse::success(new ShippingQuoteResource($quote));

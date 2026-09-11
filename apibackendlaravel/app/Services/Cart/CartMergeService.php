@@ -5,7 +5,7 @@ namespace App\Services\Cart;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
-use App\Services\Stock\StockAvailabilityService;
+use App\Services\Inventory\StockAvailabilityService;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 
