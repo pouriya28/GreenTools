@@ -8,6 +8,7 @@ import { ProductQuantityAndCart } from "./ProductQuantityAndCart";
 import { ProductSpecsTabs } from "./ProductSpecsTabs";
 import { useProductDetail } from "../../hooks/useProductDetail";
 
+
 export function ProductPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data: product, isLoading, isError } = useProductDetail(slug);
@@ -59,6 +60,7 @@ export function ProductPage() {
       <div className="mt-10">
         <ProductSpecsTabs product={product} />
       </div>
+      
     </div>
   );
 }

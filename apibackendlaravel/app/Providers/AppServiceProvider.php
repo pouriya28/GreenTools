@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-
+use App\Models\Comment;
+use App\Policies\CommentPolicy;
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -53,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(\App\Models\ShippingMethod::class, \App\Policies\ShippingMethodPolicy::class);
+        Gate::policy(Comment::class, CommentPolicy::class);
+
         // فقط این مدل‌ها اجازه دارن taggable/metable باشن — بدون این، هر مدلی
         // (حتی User یا Order) از نظر DB می‌تونست به‌عنوان taggable_type/metable_type ثبت بشه.
         //
@@ -128,6 +131,9 @@ class AppServiceProvider extends ServiceProvider
         });
         RateLimiter::for('search-address', function (Request $request) {
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+        });
+        RateLimiter::for('comment-write', function (\Illuminate\Http\Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?? $request->ip());
         });
 
         // ادغام سبد مهمان با سبد کاربر، مستقل از مسیر ورود (فرم لاگین، Sanctum SPA، و...).

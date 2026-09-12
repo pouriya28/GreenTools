@@ -8,6 +8,7 @@ import ProductsPage from "@/features/products/pages/ProductsPage"
 import TrashedProductsPage from "@/features/products/pages/TrashedProductsPage"
 import PricingPage from "@/features/pricing/pages/PricingPage"
 import ShippingMethodsPage from "@/features/shippingMethods/pages/ShippingMethodsPage"
+import { CommentModerationPage } from "@/features/comments/pages/CommentModerationPage"
 
 function Placeholder({ title }: { title: string }) {
   return <div className="text-xl font-semibold text-text-1">{title}</div>
@@ -36,7 +37,8 @@ export const router = createBrowserRouter([
           {
             path: "shipping-methods",
             element: <ShippingMethodsPage />,
-          }
+          },
+          { path: "comments", element: <CommentModerationPage /> }
         ],
       },
     ],
