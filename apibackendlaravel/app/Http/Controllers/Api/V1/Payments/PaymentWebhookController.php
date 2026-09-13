@@ -95,6 +95,7 @@ class PaymentWebhookController extends Controller
 
             $reservation->update(['status' => 'confirmed']);
         }
+        \App\Events\OrderPlaced::dispatch($order);
     }
 
     private function markFailed(Payment $payment, Order $order): void

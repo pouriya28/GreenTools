@@ -70,6 +70,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+    public function routeNotificationForBale(\Illuminate\Notifications\Notification $notification): ?string
+    {
+        // Mirrors OrderPolicy::viewAny / NotifyAdminsOfNewOrder exactly: anyone
+        // who can see the admin orders panel (admin or staff with orders.view)
+        // is exactly who should get Bale alerts — no more, no less. Never
+        // route to a plain customer even if bale_chat_id got set on their row.
+        $isEligibleForOrderAlerts = in_array($this->user_type, ['admin', 'staff'], true)
+            && $this->can('orders.view');
+
+        if (! $isEligibleForOrderAlerts) {
+            return null;
+        }
+
+        return $this->bale_chat_id;
+    }
 
     // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
     // panel, which has been fully replaced by the custom React admin panel.

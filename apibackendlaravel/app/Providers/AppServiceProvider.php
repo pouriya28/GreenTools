@@ -55,7 +55,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(\App\Models\ShippingMethod::class, \App\Policies\ShippingMethodPolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
-
+        Gate::policy(\App\Models\Order::class, \App\Policies\OrderPolicy::class);
+        Gate::policy(\App\Models\SenderAddress::class, \App\Policies\SenderAddressPolicy::class);
         // فقط این مدل‌ها اجازه دارن taggable/metable باشن — بدون این، هر مدلی
         // (حتی User یا Order) از نظر DB می‌تونست به‌عنوان taggable_type/metable_type ثبت بشه.
         //
@@ -142,5 +143,7 @@ class AppServiceProvider extends ServiceProvider
         // NEW: level-up notification hook — see RecordLevelUpgradeNotification
         // for why this is intentionally minimal for now.
         Event::listen(LevelUpgraded::class, RecordLevelUpgradeNotification::class);
+        Event::listen(\App\Events\OrderPlaced::class, \App\Listeners\NotifyAdminsOfNewOrder::class);
+        
     }
 }

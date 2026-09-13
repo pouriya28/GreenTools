@@ -43,6 +43,12 @@ return [
     'min_sane_rate' => (int) env('NAVASAN_MIN_SANE_RATE', 200000),   // پایین‌ترین نرخ منطقی (تومان)
     'max_sane_rate' => (int) env('NAVASAN_MAX_SANE_RATE', 2000000),  // بالاترین نرخ منطقی (تومان)
     'max_change_percent' => (float) env('NAVASAN_MAX_CHANGE_PERCENT', 20.0), // حداکثر تغییر مجاز نسبت به آخرین نرخ applied
-],
+    
+    ],
+    'bale' => [
+        'bot_token' => env('BALE_BOT_TOKEN'),
+        
+    ],
+
 
 ];
