@@ -1,7 +1,7 @@
 // src/components/Sidebar.tsx
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, FolderTree, Package, Trash2, ChevronRight, Coins, Truck ,MessageSquare} from 'lucide-react'
+import { LayoutDashboard, FolderTree, Package, Trash2, ChevronRight, Coins, Truck ,MessageSquare, ShoppingCart} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/pricing', label: 'نرخ ارز و قیمت', icon: Coins },
   { to: '/shipping-methods', label: 'روش‌های ارسال', icon: Truck },
   { to: '/comments', label: 'مدیریت نظرات', icon: MessageSquare },
+  { to: '/orders', label: 'سفارش‌ها', icon: ShoppingCart },
 ]
 
 export function Sidebar() {

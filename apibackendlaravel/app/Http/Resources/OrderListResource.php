@@ -16,6 +16,8 @@ class OrderListResource extends JsonResource
             'total_amount' => $this->total_amount,
             'items_count' => $this->items_count,
             'created_at' => $this->created_at?->toISOString(),
+            'customer_name' => $this->whenLoaded('addressSnapshot', fn () => $this->addressSnapshot?->recipient_name),
+            'customer_phone' => $this->whenLoaded('addressSnapshot', fn () => $this->addressSnapshot?->recipient_phone),
         ];
     }
 }

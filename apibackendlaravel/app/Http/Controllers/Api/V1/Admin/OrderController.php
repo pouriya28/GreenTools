@@ -3,36 +3,35 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\DTOs\Order\OrderFilterDTO;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Order\AdminOrderIndexRequest;
 use App\Http\Requests\Api\V1\Order\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderListResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Shipment;
+use App\Services\Order\OrderFilterService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-
+use App\Http\Responses\ApiResponse;
 class OrderController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function __construct(private readonly OrderFilterService $orderFilterService)
     {
-        $this->authorize('viewAny', Order::class);
+    }
+    public function index(AdminOrderIndexRequest $request): JsonResponse
+    {
+        // authorize('viewAny') از قبل داخل AdminOrderIndexRequest::authorize() چک شده
+        // (همون الگوی AdminProductIndexRequest)؛ اینجا نیازی به تکرارش نیست.
+        $filters = OrderFilterDTO::fromArray($request->validated());
 
-        $validated = $request->validate([
-            'status' => ['nullable', 'string', Rule::in(array_column(OrderStatus::cases(), 'value'))],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
-        ]);
+        $orders = $this->orderFilterService->paginate($filters);
 
-        $orders = Order::query()
-            ->withCount('items')
-            ->when($validated['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->latest('id')
-            ->paginate($validated['per_page'] ?? 20);
-
-        return response()->json(OrderListResource::collection($orders)->response()->getData(true));
+            return ApiResponse::success(
+        OrderListResource::collection($orders)->response()->getData(true),
+    );
     }
 
     public function show(Order $order): JsonResponse
@@ -41,7 +40,7 @@ class OrderController extends Controller
 
         $order->load(['items', 'payments', 'addressSnapshot', 'shipment']);
 
-        return response()->json(['data' => new OrderResource($order)]);
+        return ApiResponse::success(new OrderResource($order));
     }
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
@@ -78,6 +77,6 @@ class OrderController extends Controller
 
         $order->refresh()->load(['items', 'payments', 'addressSnapshot', 'shipment']);
 
-        return response()->json(['data' => new OrderResource($order)]);
+        return ApiResponse::success(new OrderResource($order));
     }
 }
