@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* src/index.css */
 @import "tailwindcss";
 @import "./shared/theme/tokens.css";
 @import "./shared/styles/feedback.css";
+@import "./shared/styles/fonts.css";
