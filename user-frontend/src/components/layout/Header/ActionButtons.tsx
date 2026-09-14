@@ -8,7 +8,7 @@ import { CartMenu } from "@/features/cart/components/CartMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { LevelAvatar } from "@/features/loyalty/components/LevelAvatar";
 import { UserIdentity } from "@/shared/components/UserIdentity";
-
+import { useWishlistProductIds } from "@/features/wishlist/hooks/useWishlistProductIds";
 
 interface ActionButtonsProps {
   onOpenMenu: () => void;
@@ -19,7 +19,8 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const cartItemCount = useCartItemCount();
-
+  const { data: wishlistedIds } = useWishlistProductIds();
+  const wishlistCount = wishlistedIds?.length ?? 0;
   return (
     <div className="flex items-center gap-2 sm:gap-3">
       {/* دکمه همبرگری - موبایل */}
@@ -39,9 +40,19 @@ export function ActionButtons({ onOpenMenu, onOpenAuth }: ActionButtonsProps) {
       <ThemeToggle />
 
       {/* علاقه‌مندی‌ها */}
-      <button className="w-10 h-10 rounded-xl bg-surface/60 border border-white/5 flex items-center justify-center text-text hover:text-primary hover:border-primary/40 transition-all">
+
+      <Link
+        to="/wishlist"
+        aria-label={wishlistCount > 0 ? `علاقه‌مندی‌ها (${wishlistCount} کالا)` : "علاقه‌مندی‌ها"}
+        className="relative w-10 h-10 rounded-xl bg-surface/60 border border-white/5 flex items-center justify-center text-text hover:text-primary hover:border-primary/40 transition-all"
+      >
         <FiHeart className="text-lg" />
-      </button>
+        {wishlistCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-black text-[10px] font-bold flex items-center justify-center shadow-sm">
+            {wishlistCount > 99 ? "99+" : wishlistCount.toLocaleString("fa-IR")}
+          </span>
+        )}
+      </Link>
 
       {/* سبد خرید - دسکتاپ: آیکون + پیش‌نمایش روی هاور */}
       <div className="hidden sm:block">

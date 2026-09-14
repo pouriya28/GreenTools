@@ -85,7 +85,10 @@ class User extends Authenticatable
 
         return $this->bale_chat_id;
     }
-
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(wishlist::class);
+    }
     // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
     // panel, which has been fully replaced by the custom React admin panel.
     // The Panel class no longer exists in this project, so this method would
