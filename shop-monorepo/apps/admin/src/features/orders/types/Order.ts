@@ -30,7 +30,7 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 }
 
 export interface OrderListItem {
-	id: number
+	id: string
 	status: OrderStatus
 	total_amount: number
 	items_count: number

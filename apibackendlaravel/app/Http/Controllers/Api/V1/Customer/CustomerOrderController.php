@@ -9,7 +9,7 @@ use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use App\Http\Responses\ApiResponse;
 class CustomerOrderController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -26,7 +26,9 @@ class CustomerOrderController extends Controller
             ->latest('id')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json(OrderListResource::collection($orders)->response()->getData(true));
+        return ApiResponse::success(
+            OrderListResource::collection($orders)->response()->getData(true)
+        );
     }
 
     public function show(Request $request, Order $order): JsonResponse
@@ -40,6 +42,6 @@ class CustomerOrderController extends Controller
 
         $order->load(['items', 'payments', 'addressSnapshot', 'shipment']);
 
-        return response()->json(['data' => new OrderResource($order)]);
+        return ApiResponse::success(['data' => new OrderResource($order)]);
     }
 }
