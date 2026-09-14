@@ -10,6 +10,7 @@ import PricingPage from "@/features/pricing/pages/PricingPage"
 import ShippingMethodsPage from "@/features/shippingMethods/pages/ShippingMethodsPage"
 import { CommentModerationPage } from "@/features/comments/pages/CommentModerationPage"
 import OrdersPage from "@/features/orders/pages/OrdersPage"
+import PrintLabelsPage from "@/features/labels/pages/PrintLabelsPage"
 function Placeholder({ title }: { title: string }) {
   return <div className="text-xl font-semibold text-text-1">{title}</div>
 }
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
           },
           { path: "comments", element: <CommentModerationPage /> },
           { path: "orders", element: <OrdersPage /> },
+          { path: "orders/print-labels", element: <PrintLabelsPage /> },
         ],
       },
     ],
