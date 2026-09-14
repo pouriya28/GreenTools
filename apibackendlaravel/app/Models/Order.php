@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class Order extends Model
 {
     // Guarded, not fillable: every write MUST go through CheckoutService/PaymentService,
     // never a raw mass-assignment from a controller. This is what blocks admin forgery.
+    use HasUlids;
     protected $guarded = ['id'];
 
     protected $casts = [

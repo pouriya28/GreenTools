@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
 
             // Nullable + non-cascading on purpose: this column is for traceability only.
             // Never used to read live price/name — those come from the snapshot columns below.

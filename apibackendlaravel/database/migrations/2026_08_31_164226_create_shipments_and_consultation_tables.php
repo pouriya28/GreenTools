@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
             $table->string('status')->default('preparing');
             $table->string('tracking_code')->nullable();
             $table->timestamps();
