@@ -18,17 +18,19 @@ import { ProductPurchaseRequirementFields } from "./form/ProductPurchaseRequirem
 import { ProductSeoFields } from "./form/ProductSeoFields"
 import { ProductMediaSection } from "./media/ProductMediaSection"
 import { sanitizeDescriptionHtml } from "../utils/sanitizeDescriptionHtml"
+import { ProductAttributesFields } from "./form/ProductAttributesFields"
 
 interface ProductFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   /** id محصول در حالت ویرایش; null یعنی حالت ساخت محصول جدید. */
-  productId?: number | null
+  productId?: string | null
 }
+const [createdProductId, setCreatedProductId] = useState<string | null>(null)
 
 function buildDefaultValues(product?: Product | null): ProductFormValues {
   return {
-    category_id: product?.category?.id ?? (undefined as unknown as number),
+    category_id: product?.category?.id ?? (undefined as unknown as string),
     name: product?.name ?? "",
     sku: product?.sku ?? "",
     short_description: product?.short_description ?? "",
@@ -131,6 +133,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
       compatibility_notice: values.compatibility_notice?.trim() || null,
       support_contact_enabled: values.support_contact_enabled,
       purchase_confirmation_required: values.purchase_confirmation_required,
+      attributes: values.attributes?.filter((a) => a.value.trim()) ?? [],
     }
 
     try {
@@ -191,7 +194,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
             <ProductInventoryFields form={form} />
             <ProductPurchaseRequirementFields form={form} />
             <ProductSeoFields form={form} />
-
+            <ProductAttributesFields form={form} />
             {isPersisted && effectiveProductId && (
               <ProductMediaSection
                 productId={effectiveProductId}

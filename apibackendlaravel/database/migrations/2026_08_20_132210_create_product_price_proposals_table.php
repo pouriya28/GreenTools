@@ -15,7 +15,7 @@ return new class extends Migration
             // operates on this batch_id.
             $table->uuid('batch_id');
             $table->foreignId('exchange_rate_id')->constrained('exchange_rates')->restrictOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
 
             $table->unsignedBigInteger('old_price_toman');
             $table->unsignedBigInteger('new_price_toman'); // system-computed proposed value
@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->enum('status', ['pending_review', 'approved', 'rejected', 'edited'])->default('pending_review');
 
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable();
 
             $table->timestamps();

@@ -11,7 +11,7 @@ use App\Support\Html\ProductDescriptionSanitizer;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-
+use App\Models\Attribute;
 class ProductService
 {
     private const MAX_FEATURED_PRODUCTS = 12;
@@ -24,7 +24,7 @@ class ProductService
         private ProductDescriptionSanitizer $descriptionSanitizer,
     ) {}
 
-    public function create(array $data, int $userId): Product
+    public function create(array $data, string $userId): Product
     {
         return DB::transaction(function () use ($data, $userId) {
             $meta = $data['meta'] ?? null;
@@ -38,7 +38,7 @@ class ProductService
             $productData['updated_by'] = $userId;
 
             if (empty($productData['sku'])) {
-                $productData['sku'] = $this->skuGenerator->generate((int) $productData['category_id']);
+                $productData['sku'] = $this->skuGenerator->generate((string) $productData['category_id']);
             }
 
             $rate = ExchangeRate::applied()->latest('fetched_at')->first();
@@ -65,12 +65,12 @@ class ProductService
 
             $product->syncMeta($meta);
             $product->syncTags($tagIds);
-
-            return $product->fresh(['tags', 'meta']);
+            $this->syncAttributes($product, $data['attributes'] ?? []);
+            return $product->fresh(['tags', 'meta' , 'attributeValues.attribute']);
         });
     }
 
-    public function update(Product $product, array $data, int $userId): Product
+    public function update(Product $product, array $data, string $userId): Product
     {
         return DB::transaction(function () use ($product, $data, $userId) {
             $meta = $data['meta'] ?? null;
@@ -136,7 +136,11 @@ class ProductService
                 $product->syncMeta($meta);
             }
 
-            return $product->fresh(['tags', 'meta']);
+            if (array_key_exists('attributes', $data)) {
+                $this->syncAttributes($product, $data['attributes'] ?? []);
+            }
+
+            return $product->fresh(['tags', 'meta', 'attributeValues.attribute']);
         });
     }
 
@@ -193,5 +197,42 @@ class ProductService
         $product->tags()->detach();
         $product->meta()->delete();
         $product->forceDelete();
+    }
+    private function syncAttributes(Product $product, array $attributes): void
+    {
+        $rows = [];
+
+        foreach (array_values($attributes) as $index => $item) {
+            $attributeId = $item['attribute_id'] ?? null;
+
+            if (! $attributeId) {
+                $name = trim((string) ($item['name'] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+
+                $attribute = Attribute::firstOrCreate(
+                    ['name' => $name],
+                    ['unit' => $item['unit'] ?? null, 'sort_order' => 0]
+                );
+                $attributeId = $attribute->id;
+            }
+
+            $value = trim((string) ($item['value'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $rows[] = [
+                'attribute_id' => $attributeId,
+                'value' => $value,
+                'sort_order' => $index,
+            ];
+        }
+
+        $product->attributeValues()->delete();
+        foreach ($rows as $row) {
+            $product->attributeValues()->create($row);
+        }
     }
 }

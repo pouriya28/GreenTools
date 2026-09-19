@@ -79,7 +79,7 @@ class ProductMediaService
         }
     }
 
-    private function storeSecurely(UploadedFile $file, int $productId): string
+    private function storeSecurely(UploadedFile $file, string $productId): string
     {
         // اعتبارسنجی قبلاً در assertValidImage انجام شده؛ اینجا فقط دوباره mime رو برای تعیین پسوند می‌خونیم
         $imageInfo = getimagesize($file->getRealPath());
@@ -186,7 +186,7 @@ class ProductMediaService
         }
     }
 
-    private function storeVideoFile(UploadedFile $file, int $productId): array
+    private function storeVideoFile(UploadedFile $file, string $productId): array
     {
         $extension = match ($file->getMimeType()) {
             'video/mp4' => 'mp4',

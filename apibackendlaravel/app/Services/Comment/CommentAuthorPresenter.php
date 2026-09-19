@@ -32,6 +32,6 @@ class CommentAuthorPresenter
         // the real LevelResolver/Level enum is confirmed.
         $level = $this->levelResolver->resolve($loyaltyPoints);
 
-        return 'کاربر ' . $level->label;
+        return $level !== null ? 'کاربر ' . $level->name : 'کاربر';
     }
 }

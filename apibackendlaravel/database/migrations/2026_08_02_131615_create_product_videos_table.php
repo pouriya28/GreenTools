@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('product_videos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
 
             // 'upload' = فایل روی دیسک خودمون | 'youtube' | 'aparat' | 'external'
             $table->enum('source_type', ['upload', 'youtube', 'aparat', 'external'])->default('upload');

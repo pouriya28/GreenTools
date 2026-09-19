@@ -40,7 +40,7 @@ class ResolveCart
         return $response;
     }
 
-    private function resolveAuthenticatedCart(int $userId): Cart
+    private function resolveAuthenticatedCart(string $userId): Cart
     {
         return Cart::firstOrCreate(
             ['user_id' => $userId, 'status' => 'active'],

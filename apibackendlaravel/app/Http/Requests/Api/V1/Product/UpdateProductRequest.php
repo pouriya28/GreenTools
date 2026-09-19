@@ -10,7 +10,7 @@ class UpdateProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage', Product::class) ?? false;
+        return $this->user()?->can('update', Product::class) ?? false;
     }
 
     public function rules(): array
@@ -19,7 +19,7 @@ class UpdateProductRequest extends FormRequest
         $product = $this->route('product');
 
         return [
-            'category_id' => ['sometimes', 'required', 'integer', 'exists:categories,id'],
+            'category_id' => ['sometimes', 'required', 'string', 'exists:categories,id'],
             'name' => ['sometimes', 'required', 'string', 'min:2', 'max:200'],
             'sku' => [
                 'sometimes', 'required', 'string', 'max:64', 'alpha_dash',
@@ -69,6 +69,11 @@ class UpdateProductRequest extends FormRequest
             // نمی‌کرد (بدون هیچ خطایی، صرفاً بی‌اثر).
             'tag_ids' => ['nullable', 'array', 'max:50'],
             'tag_ids.*' => ['integer', 'distinct', 'exists:tags,id'],
+            'attributes' => ['sometimes', 'array'],
+            'attributes.*.attribute_id' => ['nullable', 'string', 'exists:attributes,id'],
+            'attributes.*.name' => ['nullable', 'string', 'max:100', 'required_without:attributes.*.attribute_id'],
+            'attributes.*.unit' => ['nullable', 'string', 'max:30'],
+            'attributes.*.value' => ['required', 'string', 'max:500'],
         ];
     }
 

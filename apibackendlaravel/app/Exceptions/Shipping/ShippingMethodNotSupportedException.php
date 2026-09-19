@@ -7,7 +7,7 @@ use App\Exceptions\ApiException;
 
 class ShippingMethodNotSupportedException extends ApiException
 {
-    public function __construct(private readonly int $shippingMethodId)
+    public function __construct(private readonly string $shippingMethodId)
     {
         parent::__construct("Shipping method {$shippingMethodId} uses an unsupported calculation type (weight_zone, Phase 3).");
     }

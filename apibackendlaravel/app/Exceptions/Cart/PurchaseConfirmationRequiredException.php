@@ -7,7 +7,7 @@ use App\Exceptions\ApiException;
 
 class PurchaseConfirmationRequiredException extends ApiException
 {
-    public function __construct(int $productId, ?PurchaseRequirement $requirement)
+    public function __construct(string $productId, ?PurchaseRequirement $requirement)
     {
         parent::__construct('Purchase confirmation required.');
         $this->withContext([

@@ -5,7 +5,7 @@ use App\Http\Middleware\ResolveCart;
 use App\Http\Middleware\ValidateCartOwnership;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware([ResolveCart::class])->group(function () {
+Route::middleware(['sanctum.optional', ResolveCart::class])->group(function () {
     Route::get('/', [CartController::class, 'show']);
 
     Route::middleware(['throttle:cart-write'])->group(function () {

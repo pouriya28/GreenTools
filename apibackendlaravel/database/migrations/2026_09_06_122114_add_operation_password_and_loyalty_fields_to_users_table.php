@@ -17,7 +17,7 @@ return new class extends Migration
             // LoyaltyService, which is the single sanctioned writer of this column.
             $table->unsignedInteger('loyalty_points')->default(0)->after('operation_password_hash');
 
-            $table->foreignId('customer_level_id')->nullable()->after('loyalty_points')
+            $table->foreignUlid('customer_level_id')->nullable()->after('loyalty_points')
                 ->constrained('customer_levels')
                 ->nullOnDelete();
         });

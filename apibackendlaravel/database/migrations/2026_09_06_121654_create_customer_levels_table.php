@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customer_levels', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id');
+            $table->primary('id');
             $table->string('code', 50)->unique(); // stable machine identifier, never displayed
             $table->string('name', 100);           // Persian display name, safe to rename anytime
             $table->string('icon', 50)->nullable();

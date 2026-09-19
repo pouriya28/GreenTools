@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id');
+            $table->primary('id');
             $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
             $table->string('gateway');
             $table->unsignedBigInteger('amount');
@@ -20,7 +21,7 @@ return new class extends Migration
 
         Schema::create('payment_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payment_id')->constrained('payments')->cascadeOnDelete();
+            $table->foreignUlid('payment_id')->constrained('payments')->cascadeOnDelete();
             $table->string('gateway_reference')->nullable();
             $table->string('status')->default('pending');
             // Raw gateway callback payload, kept for dispute investigation. Never log secrets here.

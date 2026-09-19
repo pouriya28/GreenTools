@@ -15,7 +15,7 @@ class GrantLoyaltyPointsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'user_id' => ['required', 'string', Rule::exists('users', 'id')],
             'points' => ['required', 'integer', 'min:1', 'max:100000'],
             'description' => ['nullable', 'string', 'max:500'],
         ];

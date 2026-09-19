@@ -13,7 +13,7 @@ return new class extends Migration
             // Same pattern as OrderItem::product_id_snapshot: nullable, non-cascading FK.
             // If the ShippingMethod is later edited or soft-deleted, this order's
             // historical cost/name must not change or break.
-            $table->foreignId('shipping_method_id_snapshot')
+            $table->foreignUlid('shipping_method_id_snapshot')
                 ->nullable()
                 ->after('cart_id')
                 ->constrained('shipping_methods')

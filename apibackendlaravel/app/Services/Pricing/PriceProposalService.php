@@ -64,7 +64,7 @@ class PriceProposalService
         return $proposal->fresh();
     }
 
-    public function approveOne(ProductPriceProposal $proposal, int $adminId): ProductPriceProposal
+    public function approveOne(ProductPriceProposal $proposal, string $adminId): ProductPriceProposal
     {
         $this->guardNotFinal($proposal);
 
@@ -104,7 +104,7 @@ class PriceProposalService
         return $proposal->fresh();
     }
 
-    public function rejectOne(ProductPriceProposal $proposal, int $adminId): ProductPriceProposal
+    public function rejectOne(ProductPriceProposal $proposal, string $adminId): ProductPriceProposal
     {
         $this->guardNotFinal($proposal);
 
@@ -121,17 +121,17 @@ class PriceProposalService
         return $proposal->fresh();
     }
 
-    public function approveBatch(string $batchId, int $adminId): int
+    public function approveBatch(string $batchId, string $adminId): int
     {
         return $this->reviewBatch($batchId, $adminId, approve: true);
     }
 
-    public function rejectBatch(string $batchId, int $adminId): int
+    public function rejectBatch(string $batchId, string $adminId): int
     {
         return $this->reviewBatch($batchId, $adminId, approve: false);
     }
 
-    private function reviewBatch(string $batchId, int $adminId, bool $approve): int
+    private function reviewBatch(string $batchId, string $adminId, bool $approve): int
     {
         $count = 0;
 

@@ -12,7 +12,7 @@ class LevelUpgraded
 
     public function __construct(
         public readonly User $user,
-        public readonly ?int $previousLevelId,
-        public readonly int $newLevelId,
+        public readonly ?string $previousLevelId,
+        public readonly string $newLevelId,
     ) {}
 }

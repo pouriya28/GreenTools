@@ -25,9 +25,9 @@ class ShippingQuoteController extends Controller
     {
         /** @var Cart $cart */
         $cart = $request->attributes->get('current_cart');
-        $shippingMethod = ShippingMethod::active()->findOrFail($request->integer('shipping_method_id'));
+        $shippingMethod = ShippingMethod::active()->findOrFail($request->string('shipping_method_id')->toString());
 
-        $weightGrams = $shippingMethod->calculation_type === 'fixed'
+        $weightGrams = $shippingMethod->calculation_type === \App\Enums\ShippingCalculationType::Fixed
             ? 0
             : $this->cartService->totalWeightGrams($cart);
 

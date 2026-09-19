@@ -16,7 +16,7 @@ class NewOrderPlacedNotification extends Notification implements ShouldQueue
     // Intentionally primitive values, not the Order model itself — avoids
     // serializing/queueing a stale or overly-detailed model snapshot.
     public function __construct(
-        private readonly int $orderId,
+        private readonly string $orderId,
         private readonly int $totalAmount,
     ) {
     }

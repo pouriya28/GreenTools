@@ -9,7 +9,7 @@ export const purchaseRequirementEnum = z.enum([
 
 export const productSchema = z
   .object({
-    category_id: z.number({ required_error: "دسته‌بندی را انتخاب کنید" }),
+    category_id: z.string({ required_error: "دسته‌بندی را انتخاب کنید" }),
     name: z.string().min(2, "نام باید داقل ۲ کاراکتر باشد").max(200),
     sku: z
       .string()
@@ -27,7 +27,17 @@ export const productSchema = z
     stock_quantity: z.number().int().min(0).max(1000000),
     stock_status: z.enum(["in_stock", "out_of_stock", "preorder"]),
     weight_grams: z.number().int().min(0).max(1000000).nullable().optional(),
-
+    attributes: z
+      .array(
+        z.object({
+          attribute_id: z.string().optional(),
+          name: z.string().optional(),
+          unit: z.string().nullable().optional(),
+          value: z.string().min(1, "مقدار را وارد کنید"),
+        }),
+      )
+      .optional()
+      .default([]),
     is_active: z.boolean(),
     meta_title: z.string().max(180).nullable().optional(),
     meta_description: z.string().max(300).nullable().optional(),

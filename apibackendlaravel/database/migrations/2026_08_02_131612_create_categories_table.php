@@ -19,8 +19,9 @@ return new class extends Migration
         }
 
         Schema::create('categories', function (Blueprint $table) use ($isPgsql) {
-            $table->id();
-            $table->foreignId('parent_id')->nullable()
+            $table->ulid('id');
+            $table->primary('id');
+            $table->foreignUlid('parent_id')->nullable()
                 ->constrained('categories')->nullOnDelete();
 
             $name = $table->string('name', 150);
@@ -31,7 +32,7 @@ return new class extends Migration
             $table->string('slug', 180)->unique();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -44,7 +45,7 @@ return new class extends Migration
             //   مثل MySQL چند NULL رو در unique index «برابر» نمی‌دونه.
             // - active_name: برای رکوردهای soft-deleted شده NULL می‌شه تا حذف‌شده‌ها
             //   قفل یکتایی رو برای همیشه اشغال نکنن.
-            DB::statement('ALTER TABLE categories ADD COLUMN parent_group BIGINT GENERATED ALWAYS AS (COALESCE(parent_id, 0)) STORED');
+            DB::statement("ALTER TABLE categories ADD COLUMN parent_group CHAR(26) GENERATED ALWAYS AS (COALESCE(parent_id, '00000000000000000000000000')) STORED");
             DB::statement("ALTER TABLE categories ADD COLUMN active_name VARCHAR(150) COLLATE persian_ci GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN name ELSE NULL END) STORED");
             DB::statement('CREATE UNIQUE INDEX categories_active_sibling_unique ON categories (parent_group, active_name)');
         }

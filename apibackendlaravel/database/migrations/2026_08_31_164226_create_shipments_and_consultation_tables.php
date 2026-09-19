@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shipments', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id');
+            
+            $table->primary('id');
             $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
             $table->string('status')->default('preparing');
             $table->string('tracking_code')->nullable();
@@ -18,8 +20,8 @@ return new class extends Migration
 
         Schema::create('technical_consultation_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUlid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('status')->default('pending');
             $table->timestamps();
 

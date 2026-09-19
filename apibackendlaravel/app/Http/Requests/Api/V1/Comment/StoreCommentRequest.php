@@ -22,8 +22,8 @@ class StoreCommentRequest extends FormRequest
 
         return [
             'commentable_type' => ['required', 'string', Rule::in(array_column(CommentableType::cases(), 'value'))],
-            'commentable_id' => ['required', 'integer'],
-            'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
+            'commentable_id' => ['required', 'string'],
+            'parent_id' => ['nullable', 'string', 'exists:comments,id'],
             'body' => ['required', 'string', 'max:2000'],
             'rating' => ['nullable', 'integer', 'between:1,5'],
             'guest_name' => [Rule::requiredIf($isGuest), 'nullable', 'string', 'max:100'],
@@ -90,7 +90,7 @@ class StoreCommentRequest extends FormRequest
         }
 
         if ($parent->commentable_type !== $this->input('commentable_type')
-            || $parent->commentable_id !== (int) $this->input('commentable_id')
+            || $parent->commentable_id !== (string) $this->input('commentable_id')
         ) {
             $validator->errors()->add('parent_id', 'پاسخ باید به همان مورد تعلق داشته باشد.');
         }

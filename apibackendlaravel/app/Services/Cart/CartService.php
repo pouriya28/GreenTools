@@ -24,7 +24,7 @@ class CartService
     ) {
     }
 
-    public function addItem(Cart $cart, int $productId, int $quantity, bool $purchaseConfirmed = false): CartItem
+    public function addItem(Cart $cart, string $productId, int $quantity, bool $purchaseConfirmed = false): CartItem
     {
         $this->assertValidQuantity($quantity);
 

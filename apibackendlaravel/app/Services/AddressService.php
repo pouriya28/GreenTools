@@ -72,7 +72,7 @@ class AddressService
         });
     }
 
-    public function findOwnedOrFail(int $addressId, int $userId): Address
+    public function findOwnedOrFail(string $addressId, string $userId): Address
     {
         $address = Address::where('id', $addressId)
             ->where('user_id', $userId)

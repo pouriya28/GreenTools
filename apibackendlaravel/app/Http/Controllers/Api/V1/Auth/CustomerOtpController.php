@@ -50,7 +50,13 @@ class CustomerOtpController extends Controller
 
         // user_type/is_active عمداً guarded هستند؛ به همین دلیل با تخصیص مستقیم
         // (نه Mass Assignment) مقداردهی می‌شوند تا از privilege escalation جلوگیری شود.
-        $user = User::firstOrNew([$field => $identifier]);
+        $existingUser = User::where($field, $identifier)->first();
+        if ($existingUser && $existingUser->user_type !== 'customer') {
+            return response()->json([
+                'message' => 'این حساب کاربری متعلق به مشتری نیست.',
+            ], 403);
+        }
+        $user = $existingUser ?? new User([$field => $identifier]);
         if (!$user->exists) {
             $user->name = 'مشتری جدید';
             $user->user_type = 'customer';
@@ -84,7 +90,10 @@ class CustomerOtpController extends Controller
             app(RefreshTokenService::class)->revokeByRawToken($rawRefreshToken);
         }
 
-        $user->tokens()->delete();
+        // Only revoke the CURRENT device's access token. Deleting every token
+        // via $user->tokens()->delete() would also sign the user out of every
+        // other device, that behavior belongs to the separate logoutAll().
+        $user->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'با موفقیت از حساب کاربری خارج شدید.',
@@ -92,6 +101,7 @@ class CustomerOtpController extends Controller
             ->withoutCookie('refresh_token', '/api/v1/auth')
             ->withCookie(\Illuminate\Support\Facades\Cookie::forget('refresh_token', '/api/v1/auth/refresh'));
     }
+
     public function logoutAll(Request $request): JsonResponse
     {
         /** @var User $user */

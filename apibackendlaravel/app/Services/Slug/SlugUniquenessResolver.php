@@ -12,7 +12,7 @@ class SlugUniquenessResolver
     /**
      * @param class-string<Model> $modelClass
      */
-    public function resolve(string $sourceText, string $modelClass, ?int $ignoreId = null): string
+    public function resolve(string $sourceText, string $modelClass, ?string $ignoreId = null): string
     {
         $base = $this->slugger->slug($sourceText);
 

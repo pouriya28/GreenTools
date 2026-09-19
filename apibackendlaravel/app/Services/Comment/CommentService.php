@@ -24,7 +24,7 @@ class CommentService
         $this->assertReplyDepthAllowed(
             $validated['parent_id'] ?? null,
             $validated['commentable_type'],
-            (int) $validated['commentable_id'],
+            (string) $validated['commentable_id'],
         );
 
         $rawEditToken = null;
@@ -89,7 +89,7 @@ class CommentService
         }
     }
 
-    private function assertReplyDepthAllowed(?int $parentId, string $commentableType, int $commentableId): void
+    private function assertReplyDepthAllowed(?string $parentId, string $commentableType, string $commentableId): void
     {
         if ($parentId === null) {
             return;

@@ -15,7 +15,7 @@ class ShippingQuoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shipping_method_id' => ['required', 'integer', 'exists:shipping_methods,id'],
+            'shipping_method_id' => ['required', 'string', 'exists:shipping_methods,id'],
         ];
     }
 }

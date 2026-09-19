@@ -6,7 +6,7 @@ use App\Exceptions\ApiException;
 
 class InsufficientStockException extends ApiException
 {
-    public function __construct(int $productId, int $availableStock)
+    public function __construct(string $productId, int $availableStock)
     {
         parent::__construct("Insufficient stock for product {$productId}.");
         $this->withContext(['product_id' => $productId, 'available_stock' => $availableStock]);

@@ -29,14 +29,36 @@ class VerifyOriginForCookie
             return response()->json(['message' => 'درخواست نامعتبر (بدون Origin).'], 403);
         }
 
-        $isAllowed = collect($allowedOrigins)->contains(
-            fn (string $allowed) => str_starts_with($origin, $allowed)
-        );
+        $normalizedOrigin = $this->normalizeOrigin($origin);
+
+        $isAllowed = $normalizedOrigin !== null && collect($allowedOrigins)
+            ->contains(fn (string $allowed) => $this->normalizeOrigin($allowed) === $normalizedOrigin);
 
         if (!$isAllowed) {
             return response()->json(['message' => 'درخواست از مبدأ نامعتبر رد شد.'], 403);
         }
 
         return $next($request);
+    }
+
+    /*
+     * Reduces a URL down to scheme, host, and port only, discarding any path
+     * or query string, so a Referer header (which includes a path) can be
+     * compared against a bare Origin value. Using exact equality here,
+     * instead of the previous str_starts_with prefix match, prevents an
+     * attacker-controlled domain that merely starts with an allowed origin
+     * string from passing the check.
+     */
+    private function normalizeOrigin(string $value): ?string
+    {
+        $parts = parse_url($value);
+
+        if (!isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+
+        return strtolower($parts['scheme'].'://'.$parts['host'].$port);
     }
 }

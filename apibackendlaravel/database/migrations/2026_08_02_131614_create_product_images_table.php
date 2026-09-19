@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('product_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('disk', 30)->default('public');
             $table->string('path');
             $table->string('alt_text', 200)->nullable();

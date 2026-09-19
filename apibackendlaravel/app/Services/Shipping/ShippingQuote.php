@@ -8,7 +8,7 @@ namespace App\Services\Shipping;
 final class ShippingQuote
 {
     public function __construct(
-        public readonly int $shippingMethodId,
+        public readonly string $shippingMethodId,
         public readonly string $methodName,
         public readonly string $calculationType,
         public readonly int $cost,

@@ -15,10 +15,10 @@ class CartResource extends JsonResource
             'id' => $this->id,
             'version' => $this->version,
             'items' => $items,
-            'items_count' => $this->items->sum('quantity'),
-            'subtotal' => $this->items->sum(
+            'items_count' => $this->whenLoaded('items', fn () => $this->items->sum('quantity'), 0),
+            'subtotal' => $this->whenLoaded('items', fn () => $this->items->sum(
                 fn ($item) => ($item->price_at_addition - $item->discount_at_addition) * $item->quantity
-            ),
+            ), 0),
         ];
     }
 }

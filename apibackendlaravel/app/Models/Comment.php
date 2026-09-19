@@ -10,10 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\CommentAuthorRole;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class Comment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasUlids, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'commentable_type', 'commentable_id', 'parent_id',
@@ -84,7 +84,7 @@ class Comment extends Model
 
         // Assumes User::user_type exists with values like 'staff'/'admin'/'customer'.
         // Confirmed earlier in the pricing/products backend reference.
-        if (in_array($this->user?->user_type, ['staff', 'admin'], true)) {
+        if ($this->user?->user_type === 'staff') {
             return CommentAuthorRole::Support;
         }
 

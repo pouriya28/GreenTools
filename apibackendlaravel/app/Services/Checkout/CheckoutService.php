@@ -4,12 +4,15 @@ namespace App\Services\Checkout;
 
 use App\Contracts\ShippingCalculatorInterface;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Exceptions\Cart\InsufficientStockException;
 use App\Exceptions\Cart\ProductUnavailableException;
 use App\Exceptions\Checkout\AddressNotOwnedException;
 use App\Exceptions\Checkout\EmptyCartException;
+use App\Exceptions\Checkout\PaymentGatewayUnavailableException;
 use App\Exceptions\Checkout\StoreClosedException;
 use App\Exceptions\Checkout\TechnicalConsultationRequiredException;
+use App\Exceptions\Shipping\ShippingMethodUnavailableException;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Models\InventoryReservation;
@@ -22,6 +25,7 @@ use App\Models\TechnicalConsultationRequest;
 use App\Services\AddressService;
 use App\Services\Cart\CartService;
 use App\Services\Inventory\StockAvailabilityService;
+use App\Services\Payments\PaymentGatewayFactory;
 use App\Services\StoreStatusService;
 use Illuminate\Support\Facades\DB;
 
@@ -35,10 +39,11 @@ class CheckoutService
         private readonly StoreStatusService $storeStatus,
         private readonly CartService $cartService,
         private readonly ShippingCalculatorInterface $shippingCalculator,
+        private readonly PaymentGatewayFactory $gatewayFactory,
     ) {
     }
 
-    public function checkout(Cart $cart, Address $address, int $shippingMethodId): Order
+    public function checkout(Cart $cart, Address $address, string $shippingMethodId, string $gatewaySlug): CheckoutResult
     {
         if (! $this->storeStatus->isOpen()) {
             throw new StoreClosedException($this->storeStatus->current()->closed_reason);
@@ -48,17 +53,31 @@ class CheckoutService
             throw new AddressNotOwnedException($address->id);
         }
 
-        // Shipping method is now part of the idempotency key too, for the same
+        if (! array_key_exists($gatewaySlug, config('payments.gateways', []))) {
+            throw new PaymentGatewayUnavailableException($gatewaySlug);
+        }
+
+        // Shipping method is part of the idempotency key too, for the same
         // reason address was added before: changing the shipping method without
         // bumping the cart version must not silently return a stale order.
         $idempotencyKey = $this->buildIdempotencyKey($cart, $address, $shippingMethodId);
 
+        // Fast path: avoid transaction/lock overhead on the common, non-concurrent
+        // duplicate-submission case.
         $existing = Order::where('idempotency_key', $idempotencyKey)->first();
         if ($existing !== null) {
-            return $existing;
+            return $this->resultForOrder($existing);
         }
 
-        return DB::transaction(function () use ($cart, $address, $shippingMethodId, $idempotencyKey) {
+        $order = DB::transaction(function () use ($cart, $address, $shippingMethodId, $gatewaySlug, $idempotencyKey) {
+            // Authoritative check: locked and inside the transaction, so two
+            // concurrent duplicate submissions can't both pass this check and
+            // both attempt to Order::create() with the same idempotency_key.
+            $existing = Order::where('idempotency_key', $idempotencyKey)->lockForUpdate()->first();
+            if ($existing !== null) {
+                return $existing;
+            }
+
             $cart->loadMissing('items.product');
 
             if ($cart->items->isEmpty()) {
@@ -70,10 +89,9 @@ class CheckoutService
                 ->first();
 
             if ($shippingMethod === null) {
-                throw new \App\Exceptions\Shipping\ShippingMethodUnavailableException($shippingMethodId);
+                throw new ShippingMethodUnavailableException($shippingMethodId);
             }
 
-            $lockedProducts = [];
             $productsTotal = 0;
             $lineItems = [];
 
@@ -90,7 +108,6 @@ class CheckoutService
                 $this->assertTechnicalConsultationApprovedIfRequired($cart->user_id, $product);
 
                 $available = $this->stockAvailability->availableStock($product);
-
                 if ($available < $cartItem->quantity) {
                     throw new InsufficientStockException($product->id, $available);
                 }
@@ -100,7 +117,6 @@ class CheckoutService
                 $subtotal = $unitPrice * $cartItem->quantity;
                 $productsTotal += $subtotal;
 
-                $lockedProducts[] = $product;
                 $lineItems[] = [
                     'product' => $product,
                     'quantity' => $cartItem->quantity,
@@ -157,16 +173,36 @@ class CheckoutService
 
             Payment::create([
                 'order_id' => $order->id,
-                'gateway' => config('payments.default_gateway', 'abstract'),
+                'gateway' => $gatewaySlug,
                 'amount' => $grandTotal,
-                'status' => 'pending',
+                'status' => PaymentStatus::Pending,
             ]);
 
             return $order;
         });
+
+        return $this->resultForOrder($order);
     }
 
-    private function assertTechnicalConsultationApprovedIfRequired(int $userId, Product $product): void
+    /**
+     * Builds the redirect result for a checkout call, whether the order was
+     * just created or this is a duplicate submission returning the existing one.
+     */
+    private function resultForOrder(Order $order): CheckoutResult
+    {
+        $payment = Payment::where('order_id', $order->id)->latest('id')->first();
+
+        if ($payment === null) {
+            throw new \RuntimeException("Order {$order->id} has no associated payment.");
+        }
+
+        $gatewayImpl = $this->gatewayFactory->make($payment->gateway);
+        $paymentIntentUrl = $gatewayImpl->createPaymentIntent($payment);
+
+        return new CheckoutResult($order, $paymentIntentUrl);
+    }
+
+    private function assertTechnicalConsultationApprovedIfRequired(string $userId, Product $product): void
     {
         if (! $product->purchase_confirmation_required) {
             return;
@@ -182,7 +218,7 @@ class CheckoutService
         }
     }
 
-    private function buildIdempotencyKey(Cart $cart, Address $address, int $shippingMethodId): string
+    private function buildIdempotencyKey(Cart $cart, Address $address, string $shippingMethodId): string
     {
         return hash_hmac(
             'sha256',

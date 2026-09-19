@@ -8,10 +8,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class User extends Authenticatable
 {
-    use HasApiTokens, HasRoles, Notifiable;
+    use HasUlids,HasApiTokens, HasRoles, Notifiable;
 
     protected $guard_name = 'sanctum';
 
@@ -87,7 +87,7 @@ class User extends Authenticatable
     }
     public function wishlists(): HasMany
     {
-        return $this->hasMany(wishlist::class);
+        return $this->hasMany(Wishlist::class);
     }
     // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
     // panel, which has been fully replaced by the custom React admin panel.

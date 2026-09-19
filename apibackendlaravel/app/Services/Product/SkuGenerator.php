@@ -14,11 +14,14 @@ class SkuGenerator
 {
     private const MAX_ATTEMPTS = 5;
 
-    public function generate(int $categoryId): string
+    public function generate(string $categoryId): string
     {
-        for ($attempt = 0; $attempt < self::MAX_ATTEMPTS; $attempt++) {
-            $candidate = sprintf('P%d-%s', $categoryId, strtoupper(Str::random(6)));
+        // فقط چند کاراکتر آخر ULID دسته‌بندی رو می‌گیریم تا SKU خیلی طولانی نشه
+        // (کل ULID 26 کاراکتره)؛ همچنان به‌اندازه‌ی کافی برای دیباگ/ردیابی گویاست.
+        $categorySuffix = strtoupper(substr($categoryId, -6));
 
+        for ($attempt = 0; $attempt < self::MAX_ATTEMPTS; $attempt++) {
+            $candidate = sprintf('P%s-%s', $categorySuffix, strtoupper(Str::random(6)));
             // withTrashed چون sku توی مایگریشن unique سطح دیتابیسه و به soft delete
             // توجهی نداره - یه SKU متعلق به محصول حذف‌شده (نرم) هم نباید دوباره صادر بشه.
             if (! Product::withTrashed()->where('sku', $candidate)->exists()) {
@@ -26,7 +29,7 @@ class SkuGenerator
             }
         }
 
-        // fallack بسیار بعید: بعد از چند تلاش برخورد تصادفی داشتیم
-        return 'P'.$categoryId.'-'.strtoupper(Str::random(10));
+        // fallback بسیار بعید: بعد از چند تلاش برخورد تصادفی داشتیم
+        return 'P'.$categorySuffix.'-'.strtoupper(Str::random(10));
     }
 }

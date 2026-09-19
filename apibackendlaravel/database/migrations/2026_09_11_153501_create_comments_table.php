@@ -10,7 +10,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id');
+            $table->primary('id');
 
             // Polymorphic target — the string value here is the morph map
             // ALIAS ('product', 'blog_post'), never the raw FQCN. See
@@ -22,10 +23,10 @@ return new class extends Migration
             // points to a ROOT comment (depth is capped at 2 levels); this
             // invariant is enforced in CommentService, not the DB, since a
             // CHECK constraint cannot reference other rows.
-            $table->foreignId('parent_id')->nullable()->constrained('comments')->cascadeOnDelete();
+            $table->foreignUlid('parent_id')->nullable()->constrained('comments')->cascadeOnDelete();
 
             // Member author (nullable -> guest comment).
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('user_id')->nullable()->constrained('users')->nullOnDelete();
 
             // Guest identity fields (required when user_id is null).
             $table->string('guest_name', 100)->nullable();
@@ -40,7 +41,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating')->nullable(); // 1-5, product-only
 
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable();
 
             // Kept for abuse investigation / rate-limit auditing, not display.

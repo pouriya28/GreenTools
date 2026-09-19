@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Loyalty\GrantLoyaltyPointsRequest;
 use App\Services\Loyalty\LoyaltyService;
 use Illuminate\Http\JsonResponse;
-
+use App\Http\Responses\ApiResponse;
 class LoyaltyController extends Controller
 {
     public function __construct(private readonly LoyaltyService $loyaltyService) {}
@@ -23,13 +23,10 @@ class LoyaltyController extends Controller
             grantedBy: $request->user()->id,
         );
 
-        return response()->json([
-            'message' => 'امتیاز با موفقیت اضافه شد.',
-            'data' => [
-                'user_id' => $user->id,
-                'loyalty_points' => $user->loyalty_points,
-                'customer_level' => $user->customerLevel?->only(['id', 'code', 'name', 'icon']),
-            ],
+        return ApiResponse::success([
+            'user_id' => $user->id,
+            'loyalty_points' => $user->loyalty_points,
+            'customer_level' => $user->customerLevel?->only(['id','code','name']),("امتیاز با موفقیت اضافه شد"),
         ]);
     }
 }

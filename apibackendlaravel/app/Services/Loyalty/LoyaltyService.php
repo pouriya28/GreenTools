@@ -25,13 +25,13 @@ class LoyaltyService
      * one another (the classic "lost update" problem).
      */
     public function addPoints(
-        int $userId,
+        string $userId,
         int $points,
         string $type,
         ?string $referenceType = null,
-        ?int $referenceId = null,
+        ?string $referenceId = null,
         ?string $description = null,
-        ?int $grantedBy = null,
+        ?string $grantedBy = null,
     ): User {
         if ($points <= 0) {
             throw new InvalidArgumentException('Loyalty points to add must be a positive integer.');

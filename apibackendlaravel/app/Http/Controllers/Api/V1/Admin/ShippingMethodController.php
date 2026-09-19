@@ -23,6 +23,7 @@ class ShippingMethodController extends Controller
 
     public function store(StoreShippingMethodRequest $request): \Illuminate\Http\JsonResponse
     {
+        $this->authorize('create', ShippingMethod::class);
         $method = ShippingMethod::create($request->validated());
 
         return ApiResponse::success(data: new ShippingMethodResource($method), status: 201);
@@ -37,6 +38,7 @@ class ShippingMethodController extends Controller
 
     public function update(UpdateShippingMethodRequest $request, ShippingMethod $shippingMethod): \Illuminate\Http\JsonResponse
     {
+        $this->authorize('update', ShippingMethod::class);
         $shippingMethod->update($request->validated());
 
         return ApiResponse::success(new ShippingMethodResource($shippingMethod));

@@ -82,7 +82,7 @@ class RefreshTokenService
     }
 
     /** باطل‌کردن کل خانواده + همه‌ی توکن‌های دسترسی کاربر (force logout همه‌جا). */
-    public function revokeFamily(string $familyId, ?int $userId = null): void
+    public function revokeFamily(string $familyId, ?string $userId = null): void
     {
         RefreshToken::where('family_id', $familyId)
             ->whereNull('revoked_at')
@@ -132,7 +132,7 @@ class RefreshTokenService
         return $current;
     }
 
-    private function createRecord(string $familyId, int $userId, Request $request): RefreshTokenIssued
+    private function createRecord(string $familyId, string $userId, Request $request): RefreshTokenIssued
     {
         $plain = bin2hex(random_bytes(32)); // ۲۵۶ بیت آنتروپی
         $expiresAt = now()->addDays($this->ttlDays);
@@ -148,7 +148,7 @@ class RefreshTokenService
 
         return new RefreshTokenIssued($record, $plain, $expiresAt);
     }
-    public function revokeAllForUser(int $userId): void
+    public function revokeAllForUser(string $userId): void
     {
         RefreshToken::where('user_id', $userId)
             ->whereNull('revoked_at')

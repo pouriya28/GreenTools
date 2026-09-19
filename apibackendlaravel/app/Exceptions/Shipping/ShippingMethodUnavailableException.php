@@ -7,7 +7,7 @@ use App\Exceptions\ApiException;
 
 class ShippingMethodUnavailableException extends ApiException
 {
-    public function __construct(private readonly int $shippingMethodId)
+    public function __construct(private readonly string $shippingMethodId)
     {
         parent::__construct("Shipping method {$shippingMethodId} is not available for this cart.");
     }

@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::create('wishlists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
             // یک کاربر نمی‌تواند یک محصول را دوبار به علاقه‌مندی‌ها اضافه کند.

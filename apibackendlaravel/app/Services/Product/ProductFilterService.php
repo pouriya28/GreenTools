@@ -49,7 +49,7 @@ class ProductFilterService
         $query->whereIn('category_id', $categoryIds);
     }
 
-    private function collectDescendantIds(int $categoryId): array
+    private function collectDescendantIds(string $categoryId): array
     {
         $ids = [];
         $currentLevel = [$categoryId];

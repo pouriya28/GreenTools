@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class Category extends Model
 {
-    use HasFactory, SoftDeletes, HasTags, HasMeta;
+    use HasUlids,HasFactory, SoftDeletes, HasTags, HasMeta;
 
     /**
      * Root = depth 0
@@ -34,7 +34,7 @@ class Category extends Model
     ];
 
     protected $casts = [
-        'parent_id' => 'integer',
+        
         'is_active' => 'boolean',
     ];
 
@@ -103,7 +103,7 @@ class Category extends Model
     /**
      * بررسی می‌کند آیا Category مشخص‌شده descendant این Category است یا نه.
      */
-    public function hasDescendant(int $candidateId): bool
+    public function hasDescendant(string $candidateId): bool
     {
         if ($this->id === $candidateId) {
             return false;

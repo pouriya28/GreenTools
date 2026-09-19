@@ -10,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shipping_methods', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id');
+            $table->primary('id');
+            
             $table->string('name');
             $table->string('code')->unique();
             $table->unsignedInteger('base_cost')->default(0);

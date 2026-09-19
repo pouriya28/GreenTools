@@ -30,16 +30,11 @@ class AdminAuthController extends Controller
             })
             ->first();
 
-        // قفل حساب در صورت تلاش‌های ناموفق مکرر
-        if ($user && $user->locked_until && $user->locked_until->isFuture()) {
-            $minutesLeft = now()->diffInMinutes($user->locked_until) + 1;
-
-            return response()->json([
-                'message' => "حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است. لطفاً {$minutesLeft} دقیقه دیگر تلاش کنید.",
-            ], 423);
-        }
-
-        // جلوگیری از Enumeration Attack: پیام یکسان برای ایمیل/یوزرنیم یا پسورد اشتباه
+        // Prevent account enumeration: verify the password FIRST and return the
+        // same generic message/status for "no such user" and "wrong password".
+        // Lockout state is only revealed AFTER the password has been proven
+        // correct — otherwise the distinct 423 response below would leak
+        // whether a given login exists and is currently locked.
         if (!$user || !Hash::check($request->validated('password'), $user->password)) {
             if ($user) {
                 $this->registerFailedAttempt($user);
@@ -48,6 +43,15 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => 'ایمیل/نام کاربری یا رمز عبور اشتباه است.',
             ], 401);
+        }
+
+        // قفل حساب در صورت تلاش‌های ناموفق مکرر (فقط بعد از تایید رمز صحیح بررسی می‌شود)
+        if ($user->locked_until && $user->locked_until->isFuture()) {
+            $minutesLeft = now()->diffInMinutes($user->locked_until) + 1;
+
+            return response()->json([
+                'message' => "حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است. لطفاً {$minutesLeft} دقیقه دیگر تلاش کنید.",
+            ], 423);
         }
 
         if (!$user->is_active) {
@@ -62,7 +66,7 @@ class AdminAuthController extends Controller
         }
 
         if ($user->two_factor_enabled && $user->two_factor_secret) {
-            $tempToken = $user->createToken('2fa_pending_token', ['2fa:pending'])->plainTextToken;
+            $tempToken = $user->createToken('2fa_pending_token', ['2fa:pending'], now()->addMinutes(5))->plainTextToken;
 
             return response()->json([
                 'message' => 'کد تایید دو مرحله‌ای را وارد کنید.',
@@ -182,7 +186,10 @@ class AdminAuthController extends Controller
             app(RefreshTokenService::class)->revokeByRawToken($rawRefreshToken);
         }
 
-        $user->tokens()->delete();
+        // Only revoke the CURRENT device's access token. Deleting every token
+        // via $user->tokens()->delete() would also sign the user out of every
+        // other device — that behavior belongs to the separate logoutAll().
+        $user->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'با موفقیت از حساب کاربری خارج شدید.',

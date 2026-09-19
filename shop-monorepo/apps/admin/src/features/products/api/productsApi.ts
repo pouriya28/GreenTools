@@ -30,7 +30,7 @@ export async function fetchProducts(filters: ProductFilters) {
   return data
 }
 
-export async function fetchProduct(id: number) {
+export async function fetchProduct(id: string) {
   const { data } = await api.get<ResourceEnvelope<Product>>(`${BASE}/${id}`)
   return data.data
 }
@@ -40,16 +40,16 @@ export async function createProduct(payload: ProductPayload) {
   return data.data
 }
 
-export async function updateProduct(id: number, payload: Partial<ProductPayload>) {
+export async function updateProduct(id: string, payload: Partial<ProductPayload>) {
   const { data } = await api.patch<ResourceEnvelope<Product>>(`${BASE}/${id}`, payload)
   return data.data
 }
 
-export async function deleteProduct(id: number) {
+export async function deleteProduct(id: string) {
   await api.delete(`${BASE}/${id}`)
 }
 
-export async function toggleFeaturedProduct(id: number) {
+export async function toggleFeaturedProduct(id: string) {
   const { data } = await api.patch<ResourceEnvelope<Product>>(`${BASE}/${id}/toggle-featured`)
   return data.data
 }
@@ -61,22 +61,21 @@ export async function fetchTrashedProducts(page = 1) {
   return data
 }
 
-export async function restoreProduct(id: number) {
+export async function restoreProduct(id: string) {
   const { data } = await api.post<ResourceEnvelope<Product>>(`${BASE}/${id}/restore`)
   return data.data
 }
 
-export async function forceDeleteProduct(id: number) {
+export async function forceDeleteProduct(id: string) {
   await api.delete(`${BASE}/${id}/force`)
 }
 
 // -----------------------------------------------------------------------
 // مدیریت عکس/ویدیوی محصول (ProductMediaController)
 // نکته: مسیرها و رفتار سرور از routes/api/v1/products.php و
-// ProductMediaService.php تأیید شده. محدودیت‌های زیر برای فقط برای پیام
+// ProductMediaService.php تأیید شده. محدودیت‌های زیر فقط برای پیام
 // خطای زودهنگام سمت کلاینت‌ان؛ اعتبارسنجی واقعی و امن سمت سرور انجام می‌شه.
 // -----------------------------------------------------------------------
-
 export const MAX_IMAGES_PER_UPLOAD = 10
 export const MAX_IMAGE_SIZE_BYTES = 5120 * 1024
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
@@ -94,32 +93,30 @@ export interface StoreProductVideoPayload {
   video?: File | null
 }
 
-export async function storeProductImages(productId: number, files: File[], altTexts: string[] = []) {
+export async function storeProductImages(productId: string, files: File[], altTexts: string[] = []) {
   const formData = new FormData()
   files.forEach((file) => formData.append("images[]", file))
   files.forEach((_file, index) => formData.append("alt_texts[]", altTexts[index] ?? ""))
-
   const { data } = await api.post<ResourceEnvelope<ProductImage[]>>(`${BASE}/${productId}/images`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   })
   return data.data
 }
 
-export async function setPrimaryProductImage(productId: number, imageId: number) {
+export async function setPrimaryProductImage(productId: string, imageId: number) {
   await api.patch(`${BASE}/${productId}/images/${imageId}/primary`)
 }
 
-export async function deleteProductImage(productId: number, imageId: number) {
+export async function deleteProductImage(productId: string, imageId: number) {
   await api.delete(`${BASE}/${productId}/images/${imageId}`)
 }
 
-export async function storeProductVideo(productId: number, payload: StoreProductVideoPayload) {
+export async function storeProductVideo(productId: string, payload: StoreProductVideoPayload) {
   if (payload.source_type === "upload") {
     const formData = new FormData()
     formData.append("source_type", payload.source_type)
     if (payload.title) formData.append("title", payload.title)
     if (payload.video) formData.append("video", payload.video)
-
     const { data } = await api.post<ResourceEnvelope<ProductVideo>>(`${BASE}/${productId}/videos`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
@@ -134,6 +131,6 @@ export async function storeProductVideo(productId: number, payload: StoreProduct
   return data.data
 }
 
-export async function deleteProductVideo(productId: number, videoId: number) {
+export async function deleteProductVideo(productId: string, videoId: number) {
   await api.delete(`${BASE}/${productId}/videos/${videoId}`)
 }

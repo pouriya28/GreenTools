@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('refresh_tokens', function (Blueprint $table) {
             $table->id();
             $table->uuid('family_id')->index();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('user_id')->constrained()->cascadeOnDelete();
             $table->string('token_hash', 64)->unique();
             $table->foreignId('replaced_by_id')->nullable()
                 ->constrained('refresh_tokens')->nullOnDelete();

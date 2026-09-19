@@ -32,7 +32,7 @@ class LoyaltyPresenter
 
         $nextLevel = CustomerLevel::query()
             ->where('is_active', true)
-            ->where('sort_order', '>', $currentLevel?->sort_order ?? 0)
+            ->when($currentLevel, fn ($q) => $q->where('sort_order', '>', $currentLevel->sort_order))
             ->orderBy('sort_order')
             ->first();
 

@@ -18,7 +18,7 @@ class GenerateShippingLabelsRequest extends FormRequest
     {
         return [
             'order_ids' => ['required_without:status', 'array', 'max:200'],
-            'order_ids.*' => ['integer', 'exists:orders,id'],
+            'order_ids.*' => ['string', 'exists:orders,id'],
             'status' => [
                 'required_without:order_ids',
                 'string',

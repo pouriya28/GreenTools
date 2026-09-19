@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('customer_level_benefits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_level_id')
+            $table->foreignUlid('customer_level_id')
                 ->constrained('customer_levels')
                 ->cascadeOnDelete();
             $table->string('type', 50); // e.g. free_shipping, discount_code, priority_support

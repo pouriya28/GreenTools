@@ -17,12 +17,12 @@ class StoreCheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_id' => ['required', 'integer'],
+            'address_id' => ['required', 'string'],
             // فقط روش ارسال فعال قابل انتخاب است؛ روش غیرفعال/حذف‌شده رد می‌شود
             // (همان دفاعی که در ShippingMethodUnavailableException هم تکرار شده).
             'shipping_method_id' => [
                 'required',
-                'integer',
+                'string',
                 Rule::exists('shipping_methods', 'id')->where(fn ($query) => $query->where('is_active', true)),
             ],
         ];

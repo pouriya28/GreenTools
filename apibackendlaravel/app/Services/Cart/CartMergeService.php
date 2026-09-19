@@ -22,7 +22,7 @@ class CartMergeService
      * Idempotent: if the guest cart was already converted (e.g. duplicate
      * Login events, or a retried request), this is a safe no-op.
      */
-    public function merge(int $userId, string $guestToken): void
+    public function merge(string $userId, string $guestToken): void
     {
         DB::transaction(function () use ($userId, $guestToken) {
             $guestCart = Cart::where('guest_token', $guestToken)

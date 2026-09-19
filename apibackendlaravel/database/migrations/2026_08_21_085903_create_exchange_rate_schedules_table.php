@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             // جلوگیری از اجرای دوباره در همان دقیقه/روز اگر scheduler بیشتر از یک‌بار اجرا شود.
             $table->timestamp('last_triggered_at')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

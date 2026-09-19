@@ -13,10 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class Product extends Model
 {
-    use HasFactory, SoftDeletes, HasTags, HasMeta;
+    use HasUlids, HasFactory, SoftDeletes, HasTags, HasMeta;
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'short_description', 'description',
         'price_usd', // price_toman عمداً اینجا نیست - فقط از طریق PricingService/Job نوشته می‌شه
@@ -63,6 +63,12 @@ class Product extends Model
     public function primaryImage(): HasOne
     {
         return $this->hasOne(ProductImage::class)->where('is_primary', true);
+    }
+    public function attributeValues(): HasMany
+    {
+        return $this->hasMany(ProductAttributeValue::class)
+            ->with('attribute')
+            ->orderBy('sort_order');
     }
 
     public function comments(): MorphMany

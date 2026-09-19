@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->boolean('is_open')->default(true);
             $table->string('closed_reason')->nullable();
-            $table->foreignId('closed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('closed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('closed_at')->nullable();
             $table->timestamps();
         });

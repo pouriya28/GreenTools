@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('inventory_reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
 
             $table->unsignedInteger('quantity');
             $table->string('status')->default('active');

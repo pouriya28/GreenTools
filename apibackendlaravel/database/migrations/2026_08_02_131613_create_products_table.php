@@ -9,8 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
+            $table->ulid('id');
+            $table->primary('id');
+            $table->foreignUlid('category_id')->constrained('categories')->restrictOnDelete();
 
             $table->string('name', 200);
             $table->string('slug', 230)->unique();
@@ -37,8 +38,8 @@ return new class extends Migration
             $table->string('meta_title', 180)->nullable();
             $table->string('meta_description', 300)->nullable();
 
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('updated_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();
