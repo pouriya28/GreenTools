@@ -62,7 +62,7 @@ class AdminAuthController extends Controller
 
         // ورود موفق: پاکسازی شمارنده تلاش ناموفق
         if ($user->failed_login_attempts > 0 || $user->locked_until) {
-            $user->update(['failed_login_attempts' => 0, 'locked_until' => null]);
+            $user->clearLoginFailures();
         }
 
         if ($user->two_factor_enabled && $user->two_factor_secret) {
@@ -75,7 +75,7 @@ class AdminAuthController extends Controller
             ], 206);
         }
 
-        $user->update(['last_login_at' => now()]);
+        $user->recordLogin();
 
         return $this->issueTokenPair($user, 'staff_auth', ['*']);
     }
@@ -85,10 +85,7 @@ class AdminAuthController extends Controller
         $user->increment('failed_login_attempts');
 
         if ($user->failed_login_attempts >= $this->maxFailedAttempts) {
-            $user->update([
-                'locked_until' => now()->addMinutes($this->lockoutMinutes),
-                'failed_login_attempts' => 0,
-            ]);
+            $user->applyLockout($this->lockoutMinutes);
         }
     }
 
@@ -96,6 +93,16 @@ class AdminAuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        // 🔒 فیکس باگ: توکن wildcard نباید بتونه این endpoint رو صدا بزنه
+        $abilities = $user->currentAccessToken()?->abilities ?? [];
+        if (!in_array('2fa:pending', $abilities, true) || in_array('*', $abilities, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'دسترسی غیرمجاز.',
+                'code'    => 'FORBIDDEN',
+            ], 403);
+        }
 
         $google2fa = new Google2FA();
         $valid = $google2fa->verifyKey($user->two_factor_secret, $request->validated('totp_code'));
@@ -107,7 +114,7 @@ class AdminAuthController extends Controller
         }
 
         $user->currentAccessToken()->delete();
-        $user->update(['last_login_at' => now()]);
+        $user->recordLogin();
 
         return $this->issueTokenPair($user, 'staff_auth', ['*']);
     }
@@ -120,7 +127,7 @@ class AdminAuthController extends Controller
         $google2fa = new Google2FA();
         $secret = $google2fa->generateSecretKey();
 
-        $user->update(['two_factor_secret' => $secret]);
+        $user->setTwoFactorSecret($secret);
 
         $qrCodeUrl = $google2fa->getQRCodeUrl(
             config('app.name', 'MyStore'),
@@ -151,7 +158,7 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'کد وارد شده اشتباه است.'], 422);
         }
 
-        $user->update(['two_factor_enabled' => true]);
+        $user->enableTwoFactor();
 
         return response()->json(['message' => 'ورود دو مرحله‌ای با موفقیت فعال شد.']);
     }
@@ -168,10 +175,7 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'کد وارد شده اشتباه است.'], 422);
         }
 
-        $user->update([
-            'two_factor_enabled' => false,
-            'two_factor_secret' => null,
-        ]);
+        $user->disableTwoFactor();
 
         return response()->json(['message' => 'ورود دو مرحله‌ای غیرفعال شد.']);
     }

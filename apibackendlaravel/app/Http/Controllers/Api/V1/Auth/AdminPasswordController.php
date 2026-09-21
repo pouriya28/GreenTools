@@ -67,11 +67,10 @@ class AdminPasswordController extends Controller
             return response()->json(['message' => 'کاربر یافت نشد.'], 404);
         }
 
-        $user->update([
-            'password' => Hash::make($request->validated('password')),
-            'failed_login_attempts' => 0,
-            'locked_until' => null,
-        ]);
+        $user->password = Hash::make($request->validated('password'));
+        $user->save();
+        $user->clearLoginFailures();
+
 
         // خروج اجباری از تمام نشست‌های فعال پس از تغییر رمز عبور
         $user->tokens()->delete();

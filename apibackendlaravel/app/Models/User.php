@@ -2,16 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+
 class User extends Authenticatable
 {
-    use HasUlids,HasApiTokens, HasRoles, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use HasUlids;
+    use Notifiable;
 
     protected $guard_name = 'sanctum';
 
@@ -23,10 +30,7 @@ class User extends Authenticatable
         'password',
     ];
 
-    // operation_password_hash and loyalty fields are intentionally excluded
-    // from $fillable — they must only ever be written by internal services
-    // (OperationPasswordController, LoyaltyService), never via a generic
-    // mass-assignment call built from raw request input.
+    // These fields must only be written by trusted internal services.
     protected $hidden = [
         'password',
         'remember_token',
@@ -45,6 +49,7 @@ class User extends Authenticatable
             'two_factor_enabled' => 'boolean',
             'is_active' => 'boolean',
             'loyalty_points' => 'integer',
+            'failed_login_attempts' => 'integer',
         ];
     }
 
@@ -57,27 +62,80 @@ class User extends Authenticatable
     {
         return $this->user_type === 'staff';
     }
+    public function activate(): void
+    {
+        $this->is_active = true;
+        $this->save();
+    }
+
+    public function deactivate(): void
+    {
+        $this->is_active = false;
+        $this->save();
+    }
+    public function recordLogin(): void
+    {
+        $this->last_login_at = now();
+        $this->save();
+    }
+
+    public function clearLoginFailures(): void
+    {
+        $this->failed_login_attempts = 0;
+        $this->locked_until = null;
+        $this->save();
+    }
+
+    public function applyLockout(int $minutes): void
+    {
+        $this->locked_until = now()->addMinutes($minutes);
+        $this->failed_login_attempts = 0;
+        $this->save();
+    }
+
+    public function setTwoFactorSecret(string $secret): void
+    {
+        $this->two_factor_secret = $secret;
+        $this->save();
+    }
+
+    public function enableTwoFactor(): void
+    {
+        $this->two_factor_enabled = true;
+        $this->save();
+    }
+
+    public function disableTwoFactor(): void
+    {
+        $this->two_factor_enabled = false;
+        $this->two_factor_secret = null;
+        $this->save();
+    }
+    
 
     public function customerLevel(): BelongsTo
     {
         return $this->belongsTo(CustomerLevel::class, 'customer_level_id');
     }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
     }
+
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
-    public function routeNotificationForBale(\Illuminate\Notifications\Notification $notification): ?string
+
+    public function routeNotificationForBale(Notification $notification): ?string
     {
-        // Mirrors OrderPolicy::viewAny / NotifyAdminsOfNewOrder exactly: anyone
-        // who can see the admin orders panel (admin or staff with orders.view)
-        // is exactly who should get Bale alerts — no more, no less. Never
-        // route to a plain customer even if bale_chat_id got set on their row.
-        $isEligibleForOrderAlerts = in_array($this->user_type, ['admin', 'staff'], true)
-            && $this->can('orders.view');
+        // Anyone who can access admin orders is eligible for Bale alerts.
+        $isEligibleForOrderAlerts = in_array(
+            $this->user_type,
+            ['admin', 'staff'],
+            true
+        ) && $this->can('orders.view');
 
         if (! $isEligibleForOrderAlerts) {
             return null;
@@ -85,12 +143,9 @@ class User extends Authenticatable
 
         return $this->bale_chat_id;
     }
+
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
     }
-    // canAccessPanel(Panel $panel) removed: leftover from the Filament admin
-    // panel, which has been fully replaced by the custom React admin panel.
-    // The Panel class no longer exists in this project, so this method would
-    // have caused a fatal error the moment anything tried to call it.
 }

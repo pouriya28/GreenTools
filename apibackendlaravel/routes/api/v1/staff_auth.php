@@ -15,7 +15,7 @@ Route::post('reset-password', [AdminPasswordController::class, 'reset'])
     ->middleware('throttle:password-reset');
 
 // مرحله دوم ورود (2FA) - فقط با توکن موقتِ has-ability=2fa:pending مجاز است
-Route::middleware(['auth:sanctum', 'ability:2fa:pending'])->group(function () {
+Route::middleware(['auth:sanctum', 'strict.ability:2fa:pending' , 'account.active'])->group(function () {
     Route::post('verify-2fa', [AdminAuthController::class, 'verify2fa'])
         ->middleware('throttle:2fa-verify');
 });

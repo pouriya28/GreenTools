@@ -17,7 +17,7 @@ class SendCustomerOtpRequest extends FormRequest
         return [
             'channel' => ['required', Rule::in(['phone', 'email'])],
             'phone' => ['required_if:channel,phone', 'nullable', 'string', 'regex:/^09[0-9]{9}$/'],
-            'email' => ['required_if:channel,email', 'nullable', 'string', 'email:rfc,dns'],
+            'email' => ['required_if:channel,email', 'nullable', 'string', 'email:rfc'],
         ];
     }
 

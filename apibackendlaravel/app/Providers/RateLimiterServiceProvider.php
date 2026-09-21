@@ -52,11 +52,20 @@ class RateLimiterServiceProvider extends ServiceProvider
         // رفرش خودکار توکن (هر بار لود صفحه/تب) سقف بالاتری لازم داره؛ کلید بر
         // اساس هش کوکی refresh_token (نه IP) تا کاربرهای پشت یک NAT مشترک روی هم اثر نذارن.
         RateLimiter::for('token-refresh', function (Request $request) {
-            $rawToken = $request->cookie('refresh_token');
-            $key = $rawToken
+            $rawToken = (string) $request->cookie('refresh_token', '');
+            $clientIp = (string) $request->ip();
+
+            $tokenKey = $rawToken !== ''
                 ? 'refresh-token:'.hash('sha256', $rawToken)
-                : 'refresh-ip:'.$request->ip();
-            return Limit::perMinute(30)->by($key);
+                : 'refresh-token-missing:'.$clientIp;
+
+            return [
+                // Stable protection across successful token rotations.
+                Limit::perMinute(60)->by('refresh-ip:'.$clientIp),
+
+                // Protects repeated use of the same token and invalid/replay attempts.
+                Limit::perMinute(30)->by($tokenKey),
+            ];
         });
 
         RateLimiter::for('reverse-geocode', function (Request $request) {
