@@ -53,7 +53,7 @@ class AdminPasswordController extends Controller
             return response()->json(['message' => 'لینک بازیابی نامعتبر است.'], 422);
         }
 
-        if (now()->diffInMinutes($record->created_at) > $this->tokenTtlMinutes) {
+        if (now()->diffInMinutes(\Illuminate\Support\Carbon::parse($record->created_at)) > $this->tokenTtlMinutes) {
             DB::table('password_reset_tokens')->where('email', $request->validated('email'))->delete();
 
             return response()->json(['message' => 'لینک بازیابی منقضی شده است. دوباره درخواست دهید.'], 422);
