@@ -8,7 +8,7 @@ class VerifyOperationPasswordRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->isStaff() === true;
     }
 
     public function rules(): array

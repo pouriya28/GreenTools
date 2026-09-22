@@ -48,6 +48,18 @@ class RateLimiterServiceProvider extends ServiceProvider
         RateLimiter::for('operation-password', function (Request $request) {
             return Limit::perMinutes(15, 3)->by('op-pwd:'.$request->user()?->id.'|'.$request->ip());
         });
+        RateLimiter::for('operation-password', function (Request $request) {
+            // ترکیب user_id + IP: اگه attacker از IP دیگه‌ای trial کنه، باز هم block می‌شه
+            $userId = $request->user()?->id ?? 'guest';
+            $key    = "op-pwd:{$userId}|{$request->ip()}";
+
+            return [
+                // حداکثر ۵ تلاش در دقیقه (محافظت real-time)
+                Limit::perMinute(5)->by($key),
+                // حداکثر ۱۰ تلاش در ۱۵ دقیقه (محافظت slow-brute-force)
+                Limit::perMinutes(15, 10)->by($key),
+            ];
+        });
 
         // رفرش خودکار توکن (هر بار لود صفحه/تب) سقف بالاتری لازم داره؛ کلید بر
         // اساس هش کوکی refresh_token (نه IP) تا کاربرهای پشت یک NAT مشترک روی هم اثر نذارن.

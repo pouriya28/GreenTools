@@ -2,8 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Exceptions\Auth\OperationVerificationRequiredException;
-use App\Models\Permission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
@@ -12,28 +10,32 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureOperationVerified
 {
     /**
-     * Usage on a route: ->middleware('operation.verified:categories.delete')
+     * عملیات‌های حساس (مثل حذف محصول، بازگشت وجه) رو
+     * ملزم می‌کنه که operation password در همین session تأیید شده باشه.
      *
-     * The permission name is the single source of truth for whether a route
-     * is "sensitive" — this reads Permission::requires_operation_confirmation
-     * from the database instead of hard-coding a route list here. Flipping
-     * that flag later automatically updates every route guarded by it.
+     * Verification به token ID (session) وابسته‌ست:
+     * تأیید از session A برای session B معتبر نیست.
      */
-    public function handle(Request $request, Closure $next, string $permissionName): Response
+    public function handle(Request $request, Closure $next): Response
     {
-        $permission = Permission::query()
-            ->where('name', $permissionName)
-            ->where('guard_name', 'sanctum')
-            ->first();
+        $user = $request->user();
 
-        if (!$permission || !$permission->requires_operation_confirmation) {
-            return $next($request);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'احراز هویت لازم است.',
+                'code'    => 'UNAUTHENTICATED',
+            ], 401);
         }
 
-        $userId = $request->user()?->id;
+        $tokenId = $user->currentAccessToken()?->id;
 
-        if (!$userId || !Redis::exists("op_verified:{$userId}")) {
-            throw new OperationVerificationRequiredException();
+        if (!$tokenId || !Redis::get("op_verified:{$user->id}:{$tokenId}")) {
+            return response()->json([
+                'success' => false,
+                'message' => 'برای این عملیات ابتدا باید رمز تأیید عملیات را وارد کنید.',
+                'code'    => 'OPERATION_PASSWORD_REQUIRED',
+            ], 403);
         }
 
         return $next($request);

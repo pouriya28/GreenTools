@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\Redis;
 
 class OperationPasswordController extends Controller
 {
-    // Matches the short-lived "step-up" window discussed in the architecture:
-    // once verified, sensitive actions are allowed for this long before the
-    // admin must re-enter the operation password.
+    // مدت اعتبار تأیید عملیات بعد از verify موفق
     private const VERIFICATION_TTL_SECONDS = 300;
 
     public function set(SetOperationPasswordRequest $request): JsonResponse
@@ -24,17 +22,21 @@ class OperationPasswordController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        // Step-up requirement: knowing the login password proves this is
-        // really the account owner acting right now, not just a valid session.
+        // Step-up: login password اثبات می‌کنه که صاحب واقعی حساب پشت کیبورده
         if (!Hash::check($request->validated('current_login_password'), $user->password)) {
             Log::warning('operation_password.set_denied_bad_login_password', ['user_id' => $user->id]);
-
             throw new InvalidOperationPasswordException();
         }
 
         $user->forceFill([
             'operation_password_hash' => Hash::make($request->validated('operation_password')),
         ])->save();
+
+        // 🔒 تغییر operation password باید همه session های فعال رو از حالت verified خارج کنه.
+        // اگه این invalidation نباشه، session قدیمی تا TTL باقیمانده همچنان verified حساب می‌شه.
+        $user->tokens()->each(function ($token) use ($user) {
+            Redis::del("op_verified:{$user->id}:{$token->id}");
+        });
 
         Log::info('operation_password.set', ['user_id' => $user->id]);
 
@@ -54,20 +56,20 @@ class OperationPasswordController extends Controller
             ], 409);
         }
 
-        // Hash::check() is timing-safe by construction (it wraps
-        // password_verify), so no extra hash_equals() layer is needed here.
         if (!Hash::check($request->validated('operation_password'), $user->operation_password_hash)) {
             Log::warning('operation_password.verify_failed', ['user_id' => $user->id]);
-
             throw new InvalidOperationPasswordException();
         }
 
-        Redis::setex("op_verified:{$user->id}", self::VERIFICATION_TTL_SECONDS, '1');
+        // 🔒 verification به session جاری (token ID) وابسته‌ست، نه کل user.
+        // تأیید روی دستگاه A برای دستگاه B معتبر نیست.
+        $tokenId = $user->currentAccessToken()->id;
+        Redis::setex("op_verified:{$user->id}:{$tokenId}", self::VERIFICATION_TTL_SECONDS, '1');
 
         Log::info('operation_password.verified', ['user_id' => $user->id]);
 
         return response()->json([
-            'message' => 'عملیات تأیید شد.',
+            'message'    => 'عملیات تأیید شد.',
             'expires_in' => self::VERIFICATION_TTL_SECONDS,
         ]);
     }
