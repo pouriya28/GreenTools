@@ -41,7 +41,9 @@ class AddressController extends Controller
     }
 
     public function update(UpdateAddressRequest $request, Address $address)
-    {
+    {   
+        $this->authorize('update', $address);
+
         $address = $this->addressService->update($address, $request->validated());
 
         return ApiResponse::success($address->load(['province', 'city']));

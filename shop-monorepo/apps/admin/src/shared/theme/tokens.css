@@ -55,6 +55,7 @@
   --color-bg-1: var(--bg-1);
   --color-bg-2: var(--bg-2);
   --color-bg-3: var(--bg-3);
+
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
 
@@ -68,8 +69,10 @@
   --color-danger: var(--danger);
   --color-warning: var(--warning);
 
-  --font-sans: 'Vazirmatn', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: "Vazirmatn", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --default-font-family: "Vazirmatn", system-ui, sans-serif;
 }
 
 body {

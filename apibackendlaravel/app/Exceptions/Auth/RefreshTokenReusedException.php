@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class RefreshTokenReusedException extends ApiException
 {
     public function __construct(
-        private readonly int $userId,
+        private readonly string $userId,
         private readonly string $familyId,
     ) {
         parent::__construct('Refresh token reuse detected outside grace window.');

@@ -30,7 +30,7 @@ class CartController extends Controller
 
         $this->cartService->addItem(
             $cart,
-            $request->integer('product_id'),
+            $request->string('product_id'),
             $request->integer('quantity'),
             $request->boolean('purchase_confirmed'),
         );

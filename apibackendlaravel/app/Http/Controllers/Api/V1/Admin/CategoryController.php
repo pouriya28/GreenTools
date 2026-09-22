@@ -66,7 +66,7 @@ class CategoryController extends Controller
         return CategoryResource::collection($categories);
     }
 
-    public function restore(int $id)
+    public function restore(string $id)
     {
         $this->authorize('restore', Category::class);
 
@@ -76,7 +76,7 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 
-    public function forceDestroy(int $id)
+    public function forceDestroy(string $id)
     {
         $this->authorize('forceDelete', Category::class);
 

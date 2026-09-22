@@ -1,0 +1,640 @@
+/* =========================================================
+   GreenTools Shipping Label
+   ========================================================= */
+
+.shipping-label {
+	box-sizing: border-box;
+	container-type: size;
+
+	direction: rtl;
+
+	display: flex;
+	flex-direction: column;
+
+	width: 100%;
+	height: 100%;
+
+	padding: 3mm;
+
+	gap: 0;
+
+	background: #fff;
+	color: #111;
+
+	font-family: Vazirmatn, Tahoma, sans-serif;
+
+	break-inside: avoid;
+	page-break-inside: avoid;
+
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+
+/* =========================================================
+   Sender / Recipient box
+   ========================================================= */
+
+.shipping-label-party {
+	box-sizing: border-box;
+
+	flex: 1 1 0;
+
+	min-height: 0;
+	min-width: 0;
+
+	border: 1.2px solid #111;
+	border-radius: 3mm;
+
+	padding: 2.5mm 3mm;
+
+	display: flex;
+	flex-direction: column;
+
+	background: #fff;
+
+	overflow: hidden;
+}
+
+
+/* =========================================================
+   Party header
+   ========================================================= */
+
+.shipping-label-party-header {
+	flex: 0 0 auto;
+}
+
+.shipping-label-party-header-top {
+	display: flex;
+	align-items: center;
+
+	gap: 2mm;
+
+	min-width: 0;
+}
+
+.shipping-label-icon-badge {
+	width: 6mm;
+	height: 6mm;
+
+	border-radius: 50%;
+
+	background: #111;
+	color: #fff;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	flex-shrink: 0;
+}
+
+.shipping-label-icon-badge svg {
+	width: 3.2mm;
+	height: 3.2mm;
+}
+
+.shipping-label-party-heading {
+	display: flex;
+	align-items: baseline;
+
+	gap: 2mm;
+
+	min-width: 0;
+
+	flex: 1;
+}
+
+.shipping-label-party-title {
+	font-size: 10pt;
+	font-weight: 800;
+
+	white-space: nowrap;
+}
+
+.shipping-label-party-subtitle {
+	font-size: 6.5pt;
+	color: #666;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	min-width: 0;
+}
+
+.shipping-label-party-subtitle strong {
+	color: #111;
+	font-weight: 700;
+
+	margin-right: 1mm;
+}
+
+
+/* =========================================================
+   Generic divider
+   ========================================================= */
+
+.shipping-label-divider {
+	flex: 0 0 auto;
+
+	border-top: 1px solid #ddd;
+
+	margin: 1.5mm 0;
+}
+
+
+/* =========================================================
+   Province + City
+   ========================================================= */
+
+.shipping-label-location-row {
+	display: flex;
+	align-items: center;
+
+	width: 100%;
+	min-width: 0;
+
+	flex: 0 0 auto;
+}
+
+.shipping-label-location-item {
+	display: flex;
+	align-items: center;
+
+	gap: 1.5mm;
+
+	flex: 1 1 0;
+
+	min-width: 0;
+}
+
+.shipping-label-location-label {
+	font-size: 6.5pt;
+	font-weight: 700;
+
+	white-space: nowrap;
+
+	flex-shrink: 0;
+}
+
+.shipping-label-location-value {
+	font-size: 7pt;
+	font-weight: 700;
+
+	min-width: 0;
+
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.shipping-label-location-divider {
+	width: 1px;
+	height: 4mm;
+
+	background: #ddd;
+
+	margin: 0 2.5mm;
+
+	flex-shrink: 0;
+}
+
+
+/* =========================================================
+   Address
+   ========================================================= */
+
+.shipping-label-address {
+	display: flex;
+	flex-direction: column;
+
+	min-height: 0;
+
+	flex: 1 1 auto;
+
+	overflow: hidden;
+}
+
+.shipping-label-address-heading {
+	display: flex;
+	align-items: center;
+
+	gap: 1mm;
+
+	flex: 0 0 auto;
+
+	font-size: 6.5pt;
+	font-weight: 700;
+
+	margin-bottom: 1mm;
+}
+
+.shipping-label-address-heading svg {
+	width: 3mm;
+	height: 3mm;
+
+	color: #444;
+
+	flex-shrink: 0;
+}
+
+.shipping-label-address-text {
+	min-height: 0;
+
+	font-size: 7pt;
+	font-weight: 600;
+
+	line-height: 1.45;
+
+	overflow: hidden;
+
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+}
+
+
+/* =========================================================
+   Phone / Postal
+   ========================================================= */
+
+.shipping-label-split-row {
+	display: flex;
+	align-items: stretch;
+
+	flex: 0 0 auto;
+
+	min-width: 0;
+}
+
+.shipping-label-split-col {
+	flex: 1 1 0;
+
+	min-width: 0;
+
+	display: flex;
+	flex-direction: column;
+
+	gap: 0.7mm;
+}
+
+.shipping-label-split-divider {
+	width: 1px;
+
+	background: #ddd;
+
+	margin: 0 2.5mm;
+
+	flex-shrink: 0;
+}
+
+.shipping-label-split-label {
+	display: flex;
+	align-items: center;
+
+	gap: 1mm;
+
+	font-size: 6pt;
+	font-weight: 700;
+
+	color: #555;
+
+	white-space: nowrap;
+}
+
+.shipping-label-split-label svg {
+	width: 2.8mm;
+	height: 2.8mm;
+
+	color: #444;
+
+	flex-shrink: 0;
+}
+
+.shipping-label-split-value {
+	display: block;
+
+	font-size: 7.5pt;
+	font-weight: 800;
+
+	direction: ltr;
+	text-align: right;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   Cut line
+   ========================================================= */
+
+.shipping-label-cut {
+	position: relative;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	height: 5mm;
+
+	flex: 0 0 5mm;
+
+	margin: 1mm 0;
+}
+
+.shipping-label-cut::before,
+.shipping-label-cut::after {
+	content: "";
+
+	flex: 1;
+
+	border-top: 1px dashed #999;
+}
+
+.shipping-label-cut svg {
+	width: 4mm;
+	height: 4mm;
+
+	margin: 0 2mm;
+
+	color: #777;
+
+	flex-shrink: 0;
+}
+
+
+/* =========================================================
+   10 × 10 compact mode
+   ========================================================= */
+
+/*
+ * The label itself is a size container.
+ * Therefore this also works when several labels are rendered
+ * on the same sheet.
+ */
+
+@container (max-height: 100mm) {
+	.shipping-label {
+		padding: 2mm;
+	}
+
+	.shipping-label-party {
+		padding: 2mm 2.5mm;
+		border-radius: 2.5mm;
+	}
+
+	.shipping-label-party-header-top {
+		gap: 1.5mm;
+	}
+
+	.shipping-label-icon-badge {
+		width: 5mm;
+		height: 5mm;
+	}
+
+	.shipping-label-icon-badge svg {
+		width: 2.8mm;
+		height: 2.8mm;
+	}
+
+	.shipping-label-party-heading {
+		gap: 1.5mm;
+	}
+
+	.shipping-label-party-title {
+		font-size: 8pt;
+	}
+
+	.shipping-label-party-subtitle {
+		font-size: 5.5pt;
+	}
+
+	.shipping-label-divider {
+		margin: 1mm 0;
+	}
+
+	.shipping-label-location-label {
+		font-size: 5.5pt;
+	}
+
+	.shipping-label-location-value {
+		font-size: 6pt;
+	}
+
+	.shipping-label-location-divider {
+		height: 3mm;
+		margin: 0 1.5mm;
+	}
+
+	.shipping-label-address-heading {
+		font-size: 5.5pt;
+		margin-bottom: 0.7mm;
+	}
+
+	.shipping-label-address-heading svg {
+		width: 2.5mm;
+		height: 2.5mm;
+	}
+
+	.shipping-label-address-text {
+		font-size: 6pt;
+		line-height: 1.35;
+
+		-webkit-line-clamp: 3;
+	}
+
+	.shipping-label-split-label {
+		font-size: 5.2pt;
+	}
+
+	.shipping-label-split-label svg {
+		width: 2.4mm;
+		height: 2.4mm;
+	}
+
+	.shipping-label-split-value {
+		font-size: 6.2pt;
+	}
+
+	.shipping-label-split-divider {
+		margin: 0 1.5mm;
+	}
+
+	.shipping-label-cut {
+		height: 4mm;
+		flex-basis: 4mm;
+
+		margin: 0.5mm 0;
+	}
+
+	.shipping-label-cut svg {
+		width: 3mm;
+		height: 3mm;
+
+		margin: 0 1.5mm;
+	}
+}
+
+
+/* =========================================================
+   Extra compact mode for very tight labels
+   ========================================================= */
+
+@container (max-height: 85mm) {
+	.shipping-label {
+		padding: 1.5mm;
+	}
+
+	.shipping-label-party {
+		padding: 1.5mm 2mm;
+	}
+
+	.shipping-label-party-title {
+		font-size: 7pt;
+	}
+
+	.shipping-label-party-subtitle {
+		font-size: 5pt;
+	}
+
+	.shipping-label-icon-badge {
+		width: 4.5mm;
+		height: 4.5mm;
+	}
+
+	.shipping-label-divider {
+		margin: 0.8mm 0;
+	}
+
+	.shipping-label-location-label {
+		font-size: 5pt;
+	}
+
+	.shipping-label-location-value {
+		font-size: 5.5pt;
+	}
+
+	.shipping-label-address-heading {
+		font-size: 5pt;
+	}
+
+	.shipping-label-address-text {
+		font-size: 5.5pt;
+		line-height: 1.3;
+
+		-webkit-line-clamp: 2;
+	}
+
+	.shipping-label-split-label {
+		font-size: 4.8pt;
+	}
+
+	.shipping-label-split-value {
+		font-size: 5.7pt;
+	}
+
+	.shipping-label-cut {
+		height: 3.5mm;
+		flex-basis: 3.5mm;
+	}
+
+	.shipping-label-cut svg {
+		width: 2.8mm;
+		height: 2.8mm;
+	}
+}
+
+
+/* =========================================================
+   Preview
+   ========================================================= */
+
+@media screen {
+	.shipping-label {
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+	}
+
+	.shipping-label-preview-frame {
+		overflow: auto;
+		max-height: 70vh;
+
+		padding: 20px;
+
+		display: flex;
+		justify-content: center;
+
+		background:
+			repeating-conic-gradient(
+				#eaeaea 0% 25%,
+				#f6f6f6 0% 50%
+			)
+			50% / 22px 22px;
+
+		border-radius: 12px;
+	}
+
+	.shipping-label-preview-frame
+		.shipping-label-preview-sheet {
+		padding: 6mm;
+
+		box-shadow:
+			0 4px 24px rgba(0, 0, 0, 0.25);
+	}
+}
+
+
+/* =========================================================
+   Sheet
+   ========================================================= */
+
+.shipping-label-preview-sheet {
+	display: grid;
+
+	gap: 3mm;
+
+	background: #fff;
+
+	margin: 0 auto;
+}
+
+
+/* =========================================================
+   Print
+   ========================================================= */
+
+@media print {
+	@page {
+		margin: 5mm;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+
+		background: #fff;
+	}
+
+	.shipping-label {
+		box-shadow: none !important;
+	}
+
+	.shipping-label-preview-sheet {
+		box-shadow: none !important;
+		padding: 0 !important;
+	}
+
+	.shipping-label-preview-frame {
+		padding: 0;
+		margin: 0;
+
+		max-height: none;
+
+		background: none;
+		border-radius: 0;
+	}
+}

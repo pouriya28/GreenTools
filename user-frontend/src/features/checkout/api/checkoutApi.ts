@@ -18,9 +18,10 @@ type ApiEnvelope<T> = {
  * مالکیت ادرس (که متعلق به کاربر لاگین‌شده باشد) روی بک‌اند چک می‌شود (IDOR guard)؛
  * اگر متعلق نباشد پاسخ 404 می‌دهد که به‌صورت خطای عمومی (نه 422) توسط axios interceptor toast می‌شود.
  */
-export async function submitCheckout(addressId: number): Promise<CheckoutResult> {
+export async function submitCheckout(addressId: number,shippingMethodId: number): Promise<CheckoutResult> {
 	const response = await api.post<ApiEnvelope<CheckoutResult>>("/v1/checkout", {
 		address_id: addressId,
+		shipping_method_id: shippingMethodId,
 	})
 	return response.data.data
 }

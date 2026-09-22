@@ -30,16 +30,11 @@ class AdminAuthController extends Controller
             })
             ->first();
 
-        // قفل حساب در صورت تلاش‌های ناموفق مکرر
-        if ($user && $user->locked_until && $user->locked_until->isFuture()) {
-            $minutesLeft = now()->diffInMinutes($user->locked_until) + 1;
-
-            return response()->json([
-                'message' => "حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است. لطفاً {$minutesLeft} دقیقه دیگر تلاش کنید.",
-            ], 423);
-        }
-
-        // جلوگیری از Enumeration Attack: پیام یکسان برای ایمیل/یوزرنیم یا پسورد اشتباه
+        // Prevent account enumeration: verify the password FIRST and return the
+        // same generic message/status for "no such user" and "wrong password".
+        // Lockout state is only revealed AFTER the password has been proven
+        // correct — otherwise the distinct 423 response below would leak
+        // whether a given login exists and is currently locked.
         if (!$user || !Hash::check($request->validated('password'), $user->password)) {
             if ($user) {
                 $this->registerFailedAttempt($user);
@@ -50,6 +45,15 @@ class AdminAuthController extends Controller
             ], 401);
         }
 
+        // قفل حساب در صورت تلاش‌های ناموفق مکرر (فقط بعد از تایید رمز صحیح بررسی می‌شود)
+        if ($user->locked_until && $user->locked_until->isFuture()) {
+            $minutesLeft = now()->diffInMinutes($user->locked_until) + 1;
+
+            return response()->json([
+                'message' => "حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است. لطفاً {$minutesLeft} دقیقه دیگر تلاش کنید.",
+            ], 423);
+        }
+
         if (!$user->is_active) {
             return response()->json([
                 'message' => 'حساب کاربری شما غیرفعال شده است.',
@@ -58,11 +62,11 @@ class AdminAuthController extends Controller
 
         // ورود موفق: پاکسازی شمارنده تلاش ناموفق
         if ($user->failed_login_attempts > 0 || $user->locked_until) {
-            $user->update(['failed_login_attempts' => 0, 'locked_until' => null]);
+            $user->clearLoginFailures();
         }
 
         if ($user->two_factor_enabled && $user->two_factor_secret) {
-            $tempToken = $user->createToken('2fa_pending_token', ['2fa:pending'])->plainTextToken;
+            $tempToken = $user->createToken('2fa_pending_token', ['2fa:pending'], now()->addMinutes(5))->plainTextToken;
 
             return response()->json([
                 'message' => 'کد تایید دو مرحله‌ای را وارد کنید.',
@@ -71,7 +75,7 @@ class AdminAuthController extends Controller
             ], 206);
         }
 
-        $user->update(['last_login_at' => now()]);
+        $user->recordLogin();
 
         return $this->issueTokenPair($user, 'staff_auth', ['*']);
     }
@@ -81,10 +85,7 @@ class AdminAuthController extends Controller
         $user->increment('failed_login_attempts');
 
         if ($user->failed_login_attempts >= $this->maxFailedAttempts) {
-            $user->update([
-                'locked_until' => now()->addMinutes($this->lockoutMinutes),
-                'failed_login_attempts' => 0,
-            ]);
+            $user->applyLockout($this->lockoutMinutes);
         }
     }
 
@@ -92,6 +93,16 @@ class AdminAuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        // 🔒 فیکس باگ: توکن wildcard نباید بتونه این endpoint رو صدا بزنه
+        $abilities = $user->currentAccessToken()?->abilities ?? [];
+        if (!in_array('2fa:pending', $abilities, true) || in_array('*', $abilities, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'دسترسی غیرمجاز.',
+                'code'    => 'FORBIDDEN',
+            ], 403);
+        }
 
         $google2fa = new Google2FA();
         $valid = $google2fa->verifyKey($user->two_factor_secret, $request->validated('totp_code'));
@@ -103,7 +114,7 @@ class AdminAuthController extends Controller
         }
 
         $user->currentAccessToken()->delete();
-        $user->update(['last_login_at' => now()]);
+        $user->recordLogin();
 
         return $this->issueTokenPair($user, 'staff_auth', ['*']);
     }
@@ -116,7 +127,7 @@ class AdminAuthController extends Controller
         $google2fa = new Google2FA();
         $secret = $google2fa->generateSecretKey();
 
-        $user->update(['two_factor_secret' => $secret]);
+        $user->setTwoFactorSecret($secret);
 
         $qrCodeUrl = $google2fa->getQRCodeUrl(
             config('app.name', 'MyStore'),
@@ -147,7 +158,7 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'کد وارد شده اشتباه است.'], 422);
         }
 
-        $user->update(['two_factor_enabled' => true]);
+        $user->enableTwoFactor();
 
         return response()->json(['message' => 'ورود دو مرحله‌ای با موفقیت فعال شد.']);
     }
@@ -164,10 +175,7 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'کد وارد شده اشتباه است.'], 422);
         }
 
-        $user->update([
-            'two_factor_enabled' => false,
-            'two_factor_secret' => null,
-        ]);
+        $user->disableTwoFactor();
 
         return response()->json(['message' => 'ورود دو مرحله‌ای غیرفعال شد.']);
     }
@@ -182,7 +190,10 @@ class AdminAuthController extends Controller
             app(RefreshTokenService::class)->revokeByRawToken($rawRefreshToken);
         }
 
-        $user->tokens()->delete();
+        // Only revoke the CURRENT device's access token. Deleting every token
+        // via $user->tokens()->delete() would also sign the user out of every
+        // other device — that behavior belongs to the separate logoutAll().
+        $user->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'با موفقیت از حساب کاربری خارج شدید.',

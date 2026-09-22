@@ -34,6 +34,20 @@ const CheckoutPage = lazy(() =>
     default: m.CheckoutPage,
   })),
 )
+const CategoriesPage = lazy(() =>
+  import("@/features/categories/components/CategoriesPage/CategoriesPage").then((m) => ({
+    default: m.CategoriesPage,
+  })),
+)
+const WishlistPage = lazy(() =>
+  import("@/features/wishlist/pages/WishlistPage").then((m) => ({
+    default: m.WishlistPage,
+  })),
+)
+const DashboardPage = lazy(() =>
+  import("@/features/dashboard/pages/DashboardPage").then((m) => ({
+    default: m.DashboardPage,
+  })))
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<PageLoader />}>{element}</Suspense>
 }
@@ -50,6 +64,9 @@ export const router = createBrowserRouter([
       { path: "cart", element: withSuspense(<CartPage />) },
       { path: "checkout", element: withSuspense(<CheckoutPage />) },
       { path: "support", element: withSuspense(<SupportPage />) },
+      { path: "categories", element: withSuspense(<CategoriesPage />) },
+      { path: "wishlist", element: withSuspense(<WishlistPage />) },
+      { path: "dashboard", element: withSuspense(<DashboardPage />) },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

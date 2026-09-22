@@ -18,6 +18,7 @@ class ExchangeRateScheduleResource extends JsonResource
             'is_active' => $this->is_active,
             'last_triggered_at' => optional($this->last_triggered_at)->toIso8601String(),
             'created_at' => optional($this->created_at)->toIso8601String(),
+
         ];
     }
 }

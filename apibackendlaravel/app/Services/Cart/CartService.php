@@ -24,7 +24,7 @@ class CartService
     ) {
     }
 
-    public function addItem(Cart $cart, int $productId, int $quantity, bool $purchaseConfirmed = false): CartItem
+    public function addItem(Cart $cart, string $productId, int $quantity, bool $purchaseConfirmed = false): CartItem
     {
         $this->assertValidQuantity($quantity);
 
@@ -168,5 +168,22 @@ class CartService
     {
         Cart::where('id', $cart->id)->update(['version' => DB::raw('version + 1')]);
         $cart->refresh();
+    }
+
+    public function subtotal(Cart $cart): int
+    {
+        $cart->loadMissing('items');
+
+        return (int) $cart->items->sum(
+            fn (CartItem $item) => ($item->price_at_addition - $item->discount_at_addition) * $item->quantity
+        );
+    }
+    public function totalWeightGrams(Cart $cart): int
+    {
+        $cart->loadMissing('items.product');
+
+        return (int) $cart->items->sum(
+            fn (CartItem $item) => ($item->product->weight_grams ?? 0) * $item->quantity
+        );
     }
 }

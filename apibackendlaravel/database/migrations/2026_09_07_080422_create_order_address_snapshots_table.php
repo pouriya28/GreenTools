@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('order_address_snapshots', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
-            $table->foreignId('address_id')->nullable()->constrained('addresses')->nullOnDelete();
+            $table->foreignUlid('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->foreignUlid('address_id')->nullable()->constrained('addresses')->nullOnDelete();
 
             $table->string('recipient_name');
             $table->string('recipient_phone', 15);

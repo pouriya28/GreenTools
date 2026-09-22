@@ -6,9 +6,11 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 class Payment extends Model
 {
+    use HasUlids;
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -31,8 +33,16 @@ class Payment extends Model
         return $this->hasMany(PaymentAttempt::class);
     }
 
-    public function latestAttempt(): ?PaymentAttempt
+    public function latestAttempt(): HasOne
     {
-        return $this->attempts()->latest('id')->first();
+        return $this->hasOne(PaymentAttempt::class)->latestOfMany('id');
+    }
+    public function transitionTo(PaymentStatus $next): void
+    {
+        if (! $this->status->canTransitionTo($next)) {
+            throw new \App\Exceptions\Payment\InvalidPaymentTransitionException($this->status, $next);
+        }
+
+        $this->update(['status' => $next]);
     }
 }

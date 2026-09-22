@@ -1,8 +1,9 @@
 // features/products/components/ProductCard/ProductPreview.tsx
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FaShoppingCart, FaHeart, FaEye } from "react-icons/fa";
+import { FaShoppingCart, FaEye } from "react-icons/fa";
 import type { Product } from "./ProductTypes";
+import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 
 interface ProductPreviewProps {
   product: Product;
@@ -56,14 +57,7 @@ export function ProductPreview({ product }: ProductPreviewProps) {
           >
             <FaShoppingCart />
           </button>
-          <button
-            type="button"
-            aria-label="افزودن به علاقه‌مندی‌ها"
-            onClick={(event) => stopAndRun(event)}
-            className="w-11 h-11 rounded-full bg-surface text-error flex items-center justify-center hover:scale-110 transition"
-          >
-            <FaHeart />
-          </button>
+          <WishlistButton productId={product.id} />
           <button
             type="button"
             aria-label="مشاهده سریع"

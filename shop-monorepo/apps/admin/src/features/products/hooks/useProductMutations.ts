@@ -9,9 +9,6 @@ import {
 } from "../api/productsApi"
 import type { ProductPayload } from "../types"
 
-// چون کلید لیست شامل فیلترهاست (["products", filters])، به‌جای invalidate
-// دقیق، هر query ای که با "products" شروع بشه (بجز trash و detail) رو
-// invalidate می‌کنیم.
 function invalidateProductLists(queryClient: QueryClient) {
   queryClient.invalidateQueries({
     predicate: (query) =>
@@ -38,7 +35,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: Partial<ProductPayload> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<ProductPayload> }) =>
       updateProduct(id, payload),
     onSuccess: (_data, variables) => {
       invalidateProductLists(queryClient)
@@ -50,7 +47,7 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => deleteProduct(id),
+    mutationFn: (id: string) => deleteProduct(id),
     onSuccess: () => {
       invalidateProductLists(queryClient)
       invalidateTrash(queryClient)
@@ -61,7 +58,7 @@ export function useDeleteProduct() {
 export function useToggleFeaturedProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => toggleFeaturedProduct(id),
+    mutationFn: (id: string) => toggleFeaturedProduct(id),
     onSuccess: () => invalidateProductLists(queryClient),
   })
 }
@@ -69,7 +66,7 @@ export function useToggleFeaturedProduct() {
 export function useRestoreProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => restoreProduct(id),
+    mutationFn: (id: string) => restoreProduct(id),
     onSuccess: () => {
       invalidateProductLists(queryClient)
       invalidateTrash(queryClient)
@@ -80,7 +77,7 @@ export function useRestoreProduct() {
 export function useForceDeleteProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => forceDeleteProduct(id),
+    mutationFn: (id: string) => forceDeleteProduct(id),
     onSuccess: () => invalidateTrash(queryClient),
   })
 }

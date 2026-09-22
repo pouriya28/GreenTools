@@ -3,7 +3,7 @@ import { authApi } from "@/features/auth/api/auth.api";
 import type { AuthUser, SendOtpPayload, VerifyOtpPayload } from "@/features/auth/types/auth.types";
 import { notificationService } from "@/shared/notification/notification.service";
 import { api } from "@/lib/axios";
-
+import { ApiError } from "@/shared/error/ApiError";
 interface AuthState {
   accessToken: string | null; // فقط در حافظه — هرگز persist نمی‌شه
   user: AuthUser | null;

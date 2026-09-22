@@ -5,4 +5,5 @@ use Illuminate\Support\Facades\Route;
 
 // No auth guard — the gateway calls this directly. Security is enforced
 // inside the controller via signature verification (fail-closed).
-Route::post('webhook', [PaymentWebhookController::class, 'handle']);
+Route::post('webhook/{gateway}', [PaymentWebhookController::class, 'handle']);
+

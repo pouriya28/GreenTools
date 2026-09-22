@@ -1,8 +1,8 @@
-// src/features/products/components/ProductPage/ProductSpecsTabs.tsx
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ProductDetail } from "../../types/ProductDetail";
 import { SafeHtmlContent } from "@/shared/components/SafeHtmlContent";
+import { CommentsSection } from "@/features/comments/components/CommentsSection";
 
 interface ProductSpecsTabsProps {
   product: ProductDetail;
@@ -17,8 +17,6 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
- 
-  
   const [activeTab, setActiveTab] = useState<TabKey>("description");
 
   return (
@@ -44,7 +42,6 @@ export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
           </button>
         ))}
       </div>
-
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -60,7 +57,6 @@ export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
             ) : (
               <p>توضیحاتی برای این محصول ثبت نشده است.</p>
             ))}
-
           {activeTab === "specs" && (
             <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <SpecRow label="دسته‌بندی" value={product.category.name} />
@@ -78,12 +74,7 @@ export function ProductSpecsTabs({ product }: ProductSpecsTabsProps) {
               />
             </dl>
           )}
-
-          {activeTab === "reviews" && (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted">
-              بخش نظرات کاربران هنوز به بک‌اند وصل نشده — این placeholder است تا API نظرات آماده شود.
-            </div>
-          )}
+          {activeTab === "reviews" && <CommentsSection productId={product.id} />}
         </motion.div>
       </AnimatePresence>
     </div>

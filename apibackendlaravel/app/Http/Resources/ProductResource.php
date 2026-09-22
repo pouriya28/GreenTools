@@ -59,7 +59,7 @@ class ProductResource extends JsonResource
             'category' => new CategoryResource($this->whenLoaded('category')),
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
             'videos' => ProductVideoResource::collection($this->whenLoaded('videos')),
-
+            'attributes' => AttributeValueResource::collection($this->whenLoaded('attributeValues')),
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'created_at' => $this->created_at?->toIso8601String(),

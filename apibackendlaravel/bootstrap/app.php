@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'resolve-cart' => \App\Http\Middleware\ResolveCart::class,
             'validate-cart-ownership' => \App\Http\Middleware\ValidateCartOwnership::class, 
             'operation.verified' => \App\Http\Middleware\EnsureOperationVerified::class,
+            'sanctum.optional' => \App\Http\Middleware\ResolveOptionalSanctumUser::class,
+            'strict.ability' => \App\Http\Middleware\EnsureStrictAbility::class,
             ]);
 
         // ترتیب مهمه: RequestId باید همیشه اولین middleware باشه چون

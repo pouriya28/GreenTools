@@ -23,7 +23,7 @@ return new class extends Migration
             }
 
             if (! Schema::hasColumn('exchange_rates', 'requested_by')) {
-                $table->foreignId('requested_by')->nullable()->after('reason')->constrained('users')->nullOnDelete();
+                $table->foreignUlid('requested_by')->nullable()->after('reason')->constrained('users')->nullOnDelete();
             }
         });
     }

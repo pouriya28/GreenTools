@@ -6,7 +6,7 @@ use App\Exceptions\ApiException;
 
 class TechnicalConsultationRequiredException extends ApiException
 {
-    public function __construct(int $productId)
+    public function __construct(string $productId)
     {
         parent::__construct('Technical consultation approval required.');
         $this->withContext(['product_id' => $productId]);

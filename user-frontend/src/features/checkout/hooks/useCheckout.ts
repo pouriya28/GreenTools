@@ -10,7 +10,8 @@ export function useCheckout() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (addressId: number) => submitCheckout(addressId),
+		mutationFn: ({ addressId, shippingMethodId }: { addressId: number; shippingMethodId: number }) =>
+			 submitCheckout(addressId, shippingMethodId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: cartQueryKeys.all })
 		},

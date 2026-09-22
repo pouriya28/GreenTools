@@ -15,7 +15,7 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'category_id' => ['required', 'string', 'exists:categories,id'],
             'name' => ['required', 'string', 'min:2', 'max:200'],
             'sku' => ['nullable', 'string', 'max:64', 'unique:products,sku', 'alpha_dash'],
             'short_description' => ['nullable', 'string', 'max:500'],
@@ -48,6 +48,11 @@ class StoreProductRequest extends FormRequest
             'meta.meta_description' => ['nullable', 'string', 'max:300'],
             'tag_ids' => ['nullable', 'array', 'max:50'],
             'tag_ids.*' => ['integer', 'distinct', 'exists:tags,id'],
+            'attributes' => ['sometimes', 'array'],
+            'attributes.*.attribute_id' => ['nullable', 'string', 'exists:attributes,id'],
+            'attributes.*.name' => ['nullable', 'string', 'max:100', 'required_without:attributes.*.attribute_id'],
+            'attributes.*.unit' => ['nullable', 'string', 'max:30'],
+            'attributes.*.value' => ['required', 'string', 'max:500'],
         ];
     }
 

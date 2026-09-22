@@ -6,7 +6,7 @@ use App\Exceptions\ApiException;
 
 class ProductUnavailableException extends ApiException
 {
-    public function __construct(int $productId)
+    public function __construct(string $productId)
     {
         parent::__construct("Product {$productId} is unavailable.");
         $this->withContext(['product_id' => $productId]);

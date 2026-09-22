@@ -15,7 +15,7 @@ class CategoryService
         private SlugUniquenessResolver $slugResolver
     ) {}
 
-    public function create(array $data, int $userId): Category
+    public function create(array $data, string $userId): Category
     {
         return DB::transaction(function () use ($data, $userId) {
 
@@ -249,7 +249,7 @@ class CategoryService
     }
 
     private function resolveParent(
-        ?int $parentId
+        ?string $parentId
     ): ?Category {
 
         if ($parentId === null) {

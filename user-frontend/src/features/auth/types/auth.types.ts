@@ -25,6 +25,7 @@ export interface AuthUser {
   name: string;
   type: "customer" | "staff";
   phone?: string | null;
+  email?: string | null;
   loyalty?: LoyaltySummary | null;
 }
 

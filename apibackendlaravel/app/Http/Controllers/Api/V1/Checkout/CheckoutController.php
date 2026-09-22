@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1\Checkout;
 
 use App\Exceptions\Checkout\GuestCheckoutAddressNotSupportedException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreCheckoutRequest;
+use App\Http\Requests\Api\V1\Checkout\StoreCheckoutRequest;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Services\Checkout\CheckoutService;
@@ -33,12 +33,17 @@ class CheckoutController extends Controller
             ->where('user_id', $cart->user_id)
             ->firstOrFail();
 
-        $order = $this->checkoutService->checkout($cart, $address);
+        $order = $this->checkoutService->checkout(
+            $cart,
+            $address,
+            $request->validated('shipping_method_id'),
+        );
 
         return response()->json([
             'order_id' => $order->id,
             'status' => $order->status->value,
             'total_amount' => $order->total_amount,
+            'shipping_cost' => $order->shipping_cost,
         ], 201);
     }
 }

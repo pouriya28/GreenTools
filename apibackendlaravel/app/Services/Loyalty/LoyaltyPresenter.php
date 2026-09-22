@@ -22,14 +22,17 @@ class LoyaltyPresenter
 
         $user->loadMissing('customerLevel');
 
+        // Newly created customers may not have loyalty_points initialized yet.
+        $loyaltyPoints = $user->loyalty_points ?? 0;
+
         // Fallback for the rare case where customer_level_id is still null
         // (e.g. a user created before this feature existed) — resolve it
         // live rather than showing "no level" to a paying customer.
-        $currentLevel = $user->customerLevel ?? $this->levelResolver->resolve($user->loyalty_points);
+        $currentLevel = $user->customerLevel ?? $this->levelResolver->resolve($loyaltyPoints);
 
         $nextLevel = CustomerLevel::query()
             ->where('is_active', true)
-            ->where('sort_order', '>', $currentLevel?->sort_order ?? 0)
+            ->when($currentLevel, fn ($q) => $q->where('sort_order', '>', $currentLevel->sort_order))
             ->orderBy('sort_order')
             ->first();
 
@@ -37,14 +40,14 @@ class LoyaltyPresenter
         if ($nextLevel) {
             $currentMin = $currentLevel?->min_points ?? 0;
             $range = $nextLevel->min_points - $currentMin;
-            $earned = $user->loyalty_points - $currentMin;
+            $earned = $loyaltyPoints - $currentMin;
             $progressPercent = $range > 0
                 ? (int) round(min(100, max(0, ($earned / $range) * 100)))
                 : 0;
         }
 
         return [
-            'points' => $user->loyalty_points,
+            'points' => $loyaltyPoints,
             'level' => $currentLevel ? [
                 'code' => $currentLevel->code,
                 'name' => $currentLevel->name,
@@ -55,7 +58,7 @@ class LoyaltyPresenter
                 'name' => $nextLevel->name,
                 'icon' => $nextLevel->icon,
                 'points_required' => $nextLevel->min_points,
-                'points_remaining' => max(0, $nextLevel->min_points - $user->loyalty_points),
+                'points_remaining' => max(0, $nextLevel->min_points - $loyaltyPoints),
             ] : null,
             'progress_percent' => $progressPercent,
         ];

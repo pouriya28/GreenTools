@@ -35,7 +35,7 @@ class ProductController extends Controller
                         ->orWhere('sku', 'like', "%{$escaped}%");
                 });
             })
-            ->when($filters['category_id'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
+            ->when($filters['category_id'] ?? null, fn (Builder $query, string $categoryId) => $query->where('category_id', $categoryId))
             ->when(array_key_exists('is_active', $filters), fn (Builder $query) => $query->where('is_active', $filters['is_active']))
             ->when($filters['stock_status'] ?? null, fn (Builder $query, string $status) => $query->where('stock_status', $status))
             ->when(($filters['sort'] ?? null) === 'oldest', fn (Builder $query) => $query->oldest())
@@ -55,7 +55,7 @@ class ProductController extends Controller
     {
         $this->authorize('view', Product::class);
 
-        return new ProductResource($product->load(['category', 'images', 'videos']));
+        return new ProductResource($product->load(['category', 'images', 'videos' , 'attributeValues.attribute']));
     }
 
     public function store(StoreProductRequest $request)
@@ -69,7 +69,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->update($product, $request->validated(), $request->user()->id);
 
-        return new ProductResource($product->load(['category', 'images', 'videos']));
+        return new ProductResource($product->load(['category', 'images', 'videos' , 'attributeValues.attribute']));
     }
 
     public function destroy(Product $product)
@@ -107,7 +107,7 @@ class ProductController extends Controller
      * بازگردانی یه محصول از سطل‌زباله. عمداً route-model-binding معمولی
      * استفاده نمی‌کنیم چون اون فقط رکوردهای زنده رو می‌بینه.
      */
-    public function restore(int $id)
+    public function restore(string $id)
     {
         $this->authorize('restore', Product::class);
 
@@ -118,7 +118,7 @@ class ProductController extends Controller
     }
 
     /** حذف قطعی و برگشت‌ناپذیر از سطل‌زباله، شامل پاک‌سازی فایل‌های دیسک. */
-    public function forceDestroy(int $id)
+    public function forceDestroy(string $id)
     {
         $this->authorize('forceDelete', Product::class);
 

@@ -53,7 +53,7 @@ class AdminPasswordController extends Controller
             return response()->json(['message' => 'لینک بازیابی نامعتبر است.'], 422);
         }
 
-        if (now()->diffInMinutes($record->created_at) > $this->tokenTtlMinutes) {
+        if (\Illuminate\Support\Carbon::parse($record->created_at)->addMinutes($this->tokenTtlMinutes)->lt(now())) {
             DB::table('password_reset_tokens')->where('email', $request->validated('email'))->delete();
 
             return response()->json(['message' => 'لینک بازیابی منقضی شده است. دوباره درخواست دهید.'], 422);
@@ -67,11 +67,10 @@ class AdminPasswordController extends Controller
             return response()->json(['message' => 'کاربر یافت نشد.'], 404);
         }
 
-        $user->update([
-            'password' => Hash::make($request->validated('password')),
-            'failed_login_attempts' => 0,
-            'locked_until' => null,
-        ]);
+        $user->password = Hash::make($request->validated('password'));
+        $user->save();
+        $user->clearLoginFailures();
+
 
         // خروج اجباری از تمام نشست‌های فعال پس از تغییر رمز عبور
         $user->tokens()->delete();

@@ -7,7 +7,7 @@ use App\Support\HttpStatusCodes;
 
 class AddressNotOwnedException extends ApiException
 {
-    public function __construct(private readonly int $addressId)
+    public function __construct(private readonly string $addressId)
     {
         parent::__construct("Address {$addressId} does not belong to the authenticated user.");
 
