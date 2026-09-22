@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('metas', function (Blueprint $table) {
             $table->id();
-            $table->morphs('metable'); // metable_id, metable_type
+            $table->ulidMorphs('metable'); // metable_id, metable_type
             $table->string('meta_title', 180)->nullable();
             $table->string('meta_description', 300)->nullable();
             $table->timestamps();

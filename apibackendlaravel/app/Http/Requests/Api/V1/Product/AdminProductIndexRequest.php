@@ -16,7 +16,7 @@ class AdminProductIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:100'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['nullable', 'string', 'exists:categories,id'],
             'is_active' => ['nullable', 'boolean'],
             'stock_status' => ['nullable', 'in:in_stock,out_of_stock,preorder'],
             // برخلاف لیست عمومی، محصولات غیرفعال هم باید برای ادمین دیده بشن؛

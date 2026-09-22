@@ -27,7 +27,7 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'parent_id' => [
                 'nullable',
-                'integer',
+                'string',
 
                 Rule::exists('categories', 'id')
                     ->whereNull('deleted_at'),

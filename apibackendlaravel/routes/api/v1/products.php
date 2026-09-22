@@ -27,12 +27,11 @@ Route::middleware([
         Route::post(
             '{id}/restore',
             [AdminProductController::class, 'restore']
-        )->where('id', '[0-9A-HJKMNP-TV-Z]{26}');
-
+        )->whereUlid('id');
         Route::delete(
             '{id}/force',
             [AdminProductController::class, 'forceDestroy']
-        )->where('id', '[0-9A-HJKMNP-TV-Z]{26}');
+        )->whereUlid('id');
 
 
         // Product

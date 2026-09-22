@@ -10,9 +10,8 @@ Route::middleware(['auth:sanctum', 'staff.access', 'account.active', 'throttle:6
         Route::post('/', [AdminCategoryController::class, 'store']);
 
         Route::get('trash', [AdminCategoryController::class, 'trash']);
-        Route::post('{id}/restore', [AdminCategoryController::class, 'restore'])->whereNumber('id');
-        Route::delete('{id}/force', [AdminCategoryController::class, 'forceDestroy'])->whereNumber('id');
-
+        Route::post('{id}/restore', [AdminCategoryController::class, 'restore'])->whereUlid('id');
+        Route::delete('{id}/force', [AdminCategoryController::class, 'forceDestroy'])->whereUlid('id');
         Route::patch('{category}', [AdminCategoryController::class, 'update']);
         Route::delete('{category}', [AdminCategoryController::class, 'destroy']);
     });

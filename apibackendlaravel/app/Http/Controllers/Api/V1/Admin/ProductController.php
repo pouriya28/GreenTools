@@ -74,7 +74,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $this->authorize('manage', Product::class);
+        $this->authorize('delete', $product);
 
         $this->productService->delete($product);
 
@@ -83,7 +83,7 @@ class ProductController extends Controller
 
     public function toggleFeatured(Product $product)
     {
-        $this->authorize('manage', Product::class);
+        $this->authorize('update', $product);
 
         $product = $this->productService->toggleFeatured($product);
 

@@ -71,8 +71,14 @@ class CategoryController extends Controller
         $this->authorize('restore', Category::class);
 
         $category = Category::onlyTrashed()->findOrFail($id);
-        $category = $this->categoryService->restore($category);
+        
 
+        // اگر parent داشت ولی الان دیگه توی DB نیست (soft یا force deleted) → 422
+        if ($category->parent_id !== null && !Category::where('id', $category->parent_id)->exists()) {
+            return response()->json(['message' => 'دسته‌بندی والد حذف شده، ابتدا والد را بازیابی کنید.'], 422);
+        }
+
+        $category = $this->categoryService->restore($category);
         return new CategoryResource($category);
     }
 
