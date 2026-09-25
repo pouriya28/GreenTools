@@ -18,7 +18,7 @@ class PaymentFactory extends Factory
             'status' => PaymentStatus::Pending,
             'amount' => $this->faker->numberBetween(100000, 10000000),
             'gateway' => 'abstract',
-            'paid_at' => null,
+            
         ];
     }
 
@@ -26,7 +26,7 @@ class PaymentFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => PaymentStatus::Paid,
-            'paid_at' => now(),
+            
         ]);
     }
 
