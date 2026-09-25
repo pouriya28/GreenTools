@@ -14,13 +14,19 @@ class CartItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'cart_id' => Cart::factory(),
-            'product_id' => Product::factory(),
-            'quantity' => $this->faker->numberBetween(1, 5),
-            'price_at_addition' => $this->faker->numberBetween(100000, 5000000),
-            'discount_at_addition' => 0,
-            'purchase_requirement_at_addition' => 'standard',
-            'purchase_confirmed' => false,
+            'cart_id'                           => Cart::factory(),
+            'product_id'                        => Product::factory(),
+            'quantity'                          => $this->faker->numberBetween(1, 5),
+            'price_at_addition'                 => $this->faker->numberBetween(100_000, 5_000_000),
+            'discount_at_addition'              => 0,
+            'purchase_requirement_at_addition'  => 'standard',
+            'purchase_confirmed'                => false,
         ];
+    }
+
+    /** Item that has been purchase-confirmed. */
+    public function confirmed(): static
+    {
+        return $this->state(fn () => ['purchase_confirmed' => true]);
     }
 }
