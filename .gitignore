@@ -14,7 +14,7 @@
 !.env.example.*
 !.env.dist
 !.env.dist.*
-
+.freebuff/
 # Local secret/config files
 *.secret
 *.secrets

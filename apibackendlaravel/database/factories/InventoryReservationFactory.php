@@ -16,7 +16,7 @@ class InventoryReservationFactory extends Factory
     {
         return [
             'order_id' => Order::factory(),
-            'order_item_id' => null,
+            
             'product_id' => Product::factory(),
             'quantity' => $this->faker->numberBetween(1, 3),
             'status' => ReservationStatus::Active,
