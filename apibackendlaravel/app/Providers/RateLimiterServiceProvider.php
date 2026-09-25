@@ -46,9 +46,6 @@ class RateLimiterServiceProvider extends ServiceProvider
 
         // رمز تأیید عملیات - عملاً یه پسورد دومه، پس همون محافظت ضد brute-force لاگین رو می‌خواد.
         RateLimiter::for('operation-password', function (Request $request) {
-            return Limit::perMinutes(15, 3)->by('op-pwd:'.$request->user()?->id.'|'.$request->ip());
-        });
-        RateLimiter::for('operation-password', function (Request $request) {
             // ترکیب user_id + IP: اگه attacker از IP دیگه‌ای trial کنه، باز هم block می‌شه
             $userId = $request->user()?->id ?? 'guest';
             $key    = "op-pwd:{$userId}|{$request->ip()}";
