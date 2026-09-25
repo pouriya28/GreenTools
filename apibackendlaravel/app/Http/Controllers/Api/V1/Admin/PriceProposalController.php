@@ -55,7 +55,7 @@ class PriceProposalController extends Controller
     }
 
     public function update(UpdatePriceProposalRequest $request, ProductPriceProposal $proposal)
-    {
+    {   $this->authorize('review', ProductPriceProposal::class);
         $this->guardNotFinal($proposal);
 
         $proposal = $this->proposalService->editProposedValue(

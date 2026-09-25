@@ -12,7 +12,7 @@ class ProductPriceProposalPolicy
     // ادمین واقعی با permission درست (prices.review یا prices.manage) هم 403 می‌گرفت. اینجا همون
     // مجموعه‌ی STAFF_USER_TYPES که طرف فرانت (ProtectedRoute.tsx) استفاده می‌شه رو روی
     // بک‌اند هم اعمال می‌کنیم.
-    private const ELIGIBLE_STAFF_TYPES = ['admin', 'staff'];
+    private const ELIGIBLE_STAFF_TYPES = ['staff'];
 
     private function isEligibleStaff(User $user): bool
     {

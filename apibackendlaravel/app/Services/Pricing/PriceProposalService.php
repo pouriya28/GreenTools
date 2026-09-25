@@ -52,7 +52,7 @@ class PriceProposalService
         return $batchId;
     }
 
-    public function editProposedValue(ProductPriceProposal $proposal, int $newPriceToman, int $adminId): ProductPriceProposal
+    public function editProposedValue(ProductPriceProposal $proposal, int $newPriceToman, string $adminId): ProductPriceProposal
     {
         $this->guardNotFinal($proposal);
 
@@ -81,7 +81,9 @@ class PriceProposalService
                 $effectivePrice
             );
 
-            $product->update(['price_toman' => $effectivePrice]);
+            \Illuminate\Support\Facades\DB::table('products')
+                ->where('id', $product->id)
+                ->update(['price_toman' => $effectivePrice]);
 
             // Bug fix: nothing previously transitioned ExchangeRate::status to
             // 'applied' after a proposal was approved, so ExchangeRate::applied()

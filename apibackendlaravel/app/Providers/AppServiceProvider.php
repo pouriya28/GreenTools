@@ -55,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(\App\Models\Order::class, \App\Policies\OrderPolicy::class);
         Gate::policy(\App\Models\SenderAddress::class, \App\Policies\SenderAddressPolicy::class);
-
+        Gate::policy(\App\Models\ProductPriceProposal::class, \App\Policies\ProductPriceProposalPolicy::class);
         // فقط این مدل‌ها اجازه دارن taggable/metable باشن — بدون این، هر مدلی
         // (حتی User یا Order) از نظر DB می‌تونست به‌عنوان taggable_type/metable_type ثبت بشه.
         //
