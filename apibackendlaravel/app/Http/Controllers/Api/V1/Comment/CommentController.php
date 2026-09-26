@@ -61,11 +61,17 @@ class CommentController extends Controller
 
         if ($rawEditToken !== null) {
             $response = $response->cookie(
-                name: "comment_edit_token_{$comment->id}",
-                value: $rawEditToken,
-                minutes: 60,
-                httpOnly: true,
+                "comment_edit_token_{$comment->id}",
+                $rawEditToken,
+                60,                                    // minutes
+                '/',                                   // path
+                null,                                  // domain
+                config('session.secure', false),       // secure — true in production (HTTPS)
+                true,                                  // httpOnly — CSRF protection
+                false,                                 // raw
+                'Strict',                              // sameSite — prevents CSRF
             );
+
         }
 
         return $response;

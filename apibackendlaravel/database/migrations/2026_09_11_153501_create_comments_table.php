@@ -16,8 +16,7 @@ return new class extends Migration
             // Polymorphic target — the string value here is the morph map
             // ALIAS ('product', 'blog_post'), never the raw FQCN. See
             // AppServiceProvider::boot() for Relation::enforceMorphMap().
-            $table->string('commentable_type');
-            $table->unsignedBigInteger('commentable_id');
+            $table->ulidMorphs('commentable');
 
             // Self-referencing reply link. By convention parent_id always
             // points to a ROOT comment (depth is capped at 2 levels); this
