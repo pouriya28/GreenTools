@@ -10,7 +10,7 @@ class OrderPolicy
 {
     private function isEligibleStaff(User $user): bool
     {
-        return in_array($user->user_type, ['admin', 'staff'], true) && $user->is_active;
+        return $user->user_type === 'staff' && $user->is_active;
     }
 
     public function viewAny(User $user): bool
