@@ -16,14 +16,14 @@ class AddressFactory extends Factory
         // province_id and city_id are NOT NULL in the DB schema.
         // We insert minimal rows directly rather than creating full seeders.
         $province = DB::table('provinces')->insertGetId([
-            'name'       => $this->faker->state(),
+            'name'       => 'Province-' . \Illuminate\Support\Str::random(8),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $city = DB::table('cities')->insertGetId([
             'province_id' => $province,
-            'name'        => $this->faker->city(),
+            'name'        => 'City-' . \Illuminate\Support\Str::random(8),
             'created_at'  => now(),
             'updated_at'  => now(),
         ]);
