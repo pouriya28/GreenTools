@@ -38,7 +38,7 @@ class ShippingMethodController extends Controller
 
     public function update(UpdateShippingMethodRequest $request, ShippingMethod $shippingMethod): \Illuminate\Http\JsonResponse
     {
-        $this->authorize('update', ShippingMethod::class);
+        $this->authorize('update', $shippingMethod);
         $shippingMethod->update($request->validated());
 
         return ApiResponse::success(new ShippingMethodResource($shippingMethod));
@@ -46,7 +46,7 @@ class ShippingMethodController extends Controller
 
     public function destroy(ShippingMethod $shippingMethod): \Illuminate\Http\JsonResponse
     {
-        $this->authorize('delete', ShippingMethod::class);
+        $this->authorize('delete', $shippingMethod);
 
         // Soft delete only: existing orders keep their shipping snapshot via
         // the nullOnDelete FK, so past orders are unaffected.

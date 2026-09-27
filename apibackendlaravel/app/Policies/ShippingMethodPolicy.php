@@ -4,7 +4,7 @@
 namespace App\Policies;
 
 use App\Models\User;
-
+use App\Models\ShippingMethod;
 class ShippingMethodPolicy
 {
     // guard_name is 'sanctum' on User (Spatie laravel-permission) — must match
@@ -20,12 +20,12 @@ class ShippingMethodPolicy
         return $user->can('shipping.manage');
     }
 
-    public function update(User $user): bool
+    public function update(User $user , ShippingMethod $shippingMethod): bool
     {
         return $user->can('shipping.manage');
     }
 
-    public function delete(User $user): bool
+    public function delete(User $user , ShippingMethod $shippingMethod): bool
     {
         return $user->can('shipping.manage');
     }
