@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Comment;
 use App\Policies\CommentPolicy;
-
+use App\Listeners\MergeGuestWishlistOnLogin;
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -77,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
 
         // NEW: level-up notification hook — see RecordLevelUpgradeNotification
         // for why this is intentionally minimal for now.
+        Event::listen(Login::class, MergeGuestWishlistOnLogin::class);
         Event::listen(LevelUpgraded::class, RecordLevelUpgradeNotification::class);
         Event::listen(\App\Events\OrderPlaced::class, \App\Listeners\NotifyAdminsOfNewOrder::class);
     }

@@ -23,10 +23,13 @@ class LoyaltyController extends Controller
             grantedBy: $request->user()->id,
         );
 
-        return ApiResponse::success([
-            'user_id' => $user->id,
-            'loyalty_points' => $user->loyalty_points,
-            'customer_level' => $user->customerLevel?->only(['id','code','name']),("امتیاز با موفقیت اضافه شد"),
-        ]);
+        return ApiResponse::success(
+            data: [
+                'user_id'        => $user->id,
+                'loyalty_points' => $user->loyalty_points,
+                'customer_level' => $user->customerLevel?->only(['id', 'code', 'name']),
+            ],
+            message: 'امتیاز با موفقیت اضافه شد',
+        );
     }
-}
+} 

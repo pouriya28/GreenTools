@@ -4,7 +4,7 @@ use App\Jobs\ExpireInventoryReservationsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-
+use App\Jobs\ExpireGuestWishlistsJob;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
@@ -26,3 +26,4 @@ Schedule::job(new ExpireInventoryReservationsJob)
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
+Schedule::job(new ExpireGuestWishlistsJob)->daily();

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Wishlist extends Model
 {
-    protected $fillable = ['user_id', 'product_id'];
+    protected $fillable = ['user_id', 'product_id', 'guest_token', 'expires_at'];
 
     public function user(): BelongsTo
     {
@@ -19,4 +19,7 @@ class Wishlist extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
 }

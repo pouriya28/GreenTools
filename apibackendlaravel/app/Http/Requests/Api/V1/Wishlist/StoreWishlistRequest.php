@@ -1,5 +1,4 @@
 <?php
-// app/Http/Requests/Api/V1/Wishlist/StoreWishlistRequest.php
 
 namespace App\Http\Requests\Api\V1\Wishlist;
 
@@ -9,9 +8,9 @@ class StoreWishlistRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // محدودسازی واقعی روی کاربر لاگین‌شده از طریق میدل‌ور auth:sanctum
-        // در فایل روت انجام می‌شود؛ اینجا فقط یک لایه‌ی دفاعی اضافه است.
-        return $this->user() !== null;
+        // Auth is handled by sanctum.optional middleware on the route.
+        // Guests are allowed (guest_token is resolved by ResolveWishlist middleware).
+        return true;
     }
 
     public function rules(): array

@@ -31,6 +31,8 @@ class UserFactory extends Factory
             'locked_until' => null,
             'two_factor_enabled' => false,
             'two_factor_secret' => null,
+            'loyalty_points' => 0,
+            'customer_level_id' => null,
         ];
     }
 

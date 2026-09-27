@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Api/V1/Wishlist/WishlistController.php
 
 namespace App\Http\Controllers\Api\V1\Wishlist;
 
@@ -20,35 +19,59 @@ class WishlistController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $products = $this->wishlistService->paginateProductsForUser($request->user());
+        $user = $request->user();
 
-        // از همان ProductListResource موجود استفاده می‌کنیم تا شکل داده دقیقاً
-        // با چیزی که ProductCard فرانت از قبل مصرف می‌کند یکسان بماند.
+        if ($user !== null) {
+            $products = $this->wishlistService->paginateProductsForUser($user);
+        } else {
+            $guestToken = $request->attributes->get('wishlist_guest_token');
+            $products   = $this->wishlistService->paginateProductsForGuest($guestToken);
+        }
+
         return ApiResponse::success(
             ProductListResource::collection($products)->response()->getData(true)
         );
     }
 
-    // برای این‌که قلب روی هر ProductCard بدون گرفتن کل محصول بداند پرشده/خالیه.
     public function productIds(Request $request): JsonResponse
     {
-        return ApiResponse::success([
-            'product_ids' => $this->wishlistService->productIdsForUser($request->user()),
-        ]);
+        $user = $request->user();
+
+        if ($user !== null) {
+            $ids = $this->wishlistService->productIdsForUser($user);
+        } else {
+            $guestToken = $request->attributes->get('wishlist_guest_token');
+            $ids        = $this->wishlistService->productIdsForGuest($guestToken);
+        }
+
+        return ApiResponse::success(['product_ids' => $ids]);
     }
 
     public function store(StoreWishlistRequest $request): JsonResponse
     {
         $product = Product::query()->findOrFail($request->validated('product_id'));
+        $user    = $request->user();
 
-        $this->wishlistService->add($request->user(), $product);
+        if ($user !== null) {
+            $this->wishlistService->add($user, $product);
+        } else {
+            $guestToken = $request->attributes->get('wishlist_guest_token');
+            $this->wishlistService->addForGuest($guestToken, $product);
+        }
 
         return ApiResponse::success(null, 'به علاقه‌مندی‌ها اضافه شد.', status: 201);
     }
 
     public function destroy(Request $request, Product $product): JsonResponse
     {
-        $this->wishlistService->remove($request->user(), $product);
+        $user = $request->user();
+
+        if ($user !== null) {
+            $this->wishlistService->remove($user, $product);
+        } else {
+            $guestToken = $request->attributes->get('wishlist_guest_token');
+            $this->wishlistService->removeForGuest($guestToken, $product);
+        }
 
         return ApiResponse::success(null, 'از علاقه‌مندی‌ها حذف شد.');
     }

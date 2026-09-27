@@ -14,7 +14,7 @@ use App\Models\ShippingMethod;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-
+use App\Models\StoreStatus;
 // ---------------------------------------------------------------------------
 // Helper — minimal checkout-ready state (no CartItems added yet)
 // ---------------------------------------------------------------------------
@@ -305,4 +305,38 @@ it('does not cancel an already-paid order even when reservation is past expiry',
     (new ExpireInventoryReservationsJob())->handle();
 
     expect($order->refresh()->status)->toBe(OrderStatus::Processing);
+});
+it('checkout fails with 503 when store is closed', function () {
+    Http::preventStrayRequests();
+    config(['payments.gateways.test_gateway' => ['driver' => 'test']]);
+
+    $user           = User::factory()->customer()->create();
+    $product        = Product::factory()->create(['is_active' => true, 'stock_quantity' => 5]);
+    DB::table('products')->where('id', $product->id)->update(['price_toman' => 500_000]);
+    $product->refresh();
+    $address        = Address::factory()->create(['user_id' => $user->id]);
+    $shippingMethod = ShippingMethod::factory()->create(['is_active' => true]);
+    $cart           = Cart::factory()->forUser($user)->create();
+    CartItem::factory()->create([
+        'cart_id'    => $cart->id,
+        'product_id' => $product->id,
+        'quantity'   => 1,
+    ]);
+
+    // Mock: store is CLOSED
+    $storeStatus = Mockery::mock(\App\Services\StoreStatusService::class);
+    $storeStatus->shouldReceive('isOpen')->andReturn(false);
+    $storeStatus->shouldReceive('current')->andReturn(
+        StoreStatus::make(['closed_reason' => 'Maintenance', 'is_open' => false])
+    );
+    app()->instance(\App\Services\StoreStatusService::class, $storeStatus);
+
+    $this->actingAs($user)->postJson('/api/v1/checkout', [
+        'address_id'         => $address->id,
+        'shipping_method_id' => $shippingMethod->id,
+        'gateway'            => 'test_gateway',
+    ])->assertStatus(503);
+
+    // No order should have been created
+    $this->assertDatabaseCount('orders', 0);
 });

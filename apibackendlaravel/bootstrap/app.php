@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'operation.verified' => \App\Http\Middleware\EnsureOperationVerified::class,
             'sanctum.optional' => \App\Http\Middleware\ResolveOptionalSanctumUser::class,
             'strict.ability' => \App\Http\Middleware\EnsureStrictAbility::class,
+            'resolve.wishlist' => \App\Http\Middleware\ResolveWishlist::class,
             ]);
 
         // ترتیب مهمه: RequestId باید همیشه اولین middleware باشه چون
