@@ -1,3 +1,6 @@
+// Branded ULID type — use this everywhere instead of plain string for IDs
+export type Ulid = string & { readonly __brand: 'Ulid' }
+
 export interface ApiMeta {
   request_id: string | null
   timestamp: string

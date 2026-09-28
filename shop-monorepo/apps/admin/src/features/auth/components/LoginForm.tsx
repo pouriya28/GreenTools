@@ -1,5 +1,7 @@
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { FiEye, FiEyeOff } from "react-icons/fi"
 import { loginSchema, type LoginFormValues } from "../schema"
 import { Button } from "@/components/ui/button"
 
@@ -10,6 +12,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, isSubmitting, errorMessage }: LoginFormProps) {
+  const [showPassword, setShowPassword] = useState(false)
+
   const {
     register,
     handleSubmit,
@@ -40,13 +44,23 @@ export function LoginForm({ onSubmit, isSubmitting, errorMessage }: LoginFormPro
         <label htmlFor="password" className="text-sm text-text-2">
           رمز عبور
         </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-          className="rounded-lg border border-border bg-bg-2 px-3.5 py-2.5 text-text-1 outline-none transition-colors focus:border-primary"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            {...register("password")}
+            className="w-full rounded-lg border border-border bg-bg-2 px-3.5 py-2.5 text-text-1 outline-none transition-colors focus:border-primary ltr:pr-10 rtl:pl-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={showPassword ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
+            className="absolute inset-y-0 ltr:right-3 rtl:left-3 flex items-center text-text-3 hover:text-text-1 transition-colors"
+          >
+            {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+          </button>
+        </div>
         {errors.password && (
           <span className="text-xs text-danger">{errors.password.message}</span>
         )}

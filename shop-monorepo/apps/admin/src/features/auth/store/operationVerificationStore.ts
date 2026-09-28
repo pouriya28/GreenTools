@@ -1,13 +1,13 @@
 import { create } from "zustand"
 
-interface OperationVerificationStore {
-	isOpen: boolean
-	isBusy: boolean
-	errorMessage: string | null
-	setBusy: (busy: boolean) => void
-	setError: (message: string | null) => void
-	open: () => void
-	close: () => void
+interface OperationVerificationState {
+  isOpen: boolean
+  isBusy: boolean
+  errorMessage: string | null
+  open: () => void
+  close: () => void
+  setBusy: (busy: boolean) => void
+  setError: (error: string | null) => void
 }
 
 /**

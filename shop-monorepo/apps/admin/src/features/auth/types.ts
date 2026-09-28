@@ -1,20 +1,27 @@
+// Remove ApiEnvelope from here — use the shared one from @/shared/types/apiResponse
+
+import type { ApiEnvelope } from '@/shared/types/apiResponse'
+
+// Re-export so existing imports don't break
+export type { ApiEnvelope }
+
+// ULID is always a string — branded type for safety
+export type Ulid = string & { readonly __brand: 'Ulid' }
+
+export type StaffRole = 'super_admin' | 'admin' | 'editor' | 'viewer'
+
 export interface AuthUser {
-  id: number
+  id: Ulid          // was: number — migrated to ULID
   name: string
-  type: string
+  email: string
+  type: StaffRole   // was: string — now strictly typed
 }
 
 export interface TokenData {
   access_token: string
-  token_type: string
-  expires_in: number
+  token_type: 'Bearer'
+  expires_in: number   // seconds — from backend
   user: AuthUser
-}
-
-export interface ApiEnvelope<T> {
-  status: string
-  message: string
-  data: T
 }
 
 export interface LoginPayload {
@@ -25,5 +32,5 @@ export interface LoginPayload {
 export interface Requires2FAResponse {
   message: string
   requires_2fa: true
-  access_token: string // توکن موقت با ability=2fa:pending
+  access_token: string  // temp token with ability=2fa:pending
 }

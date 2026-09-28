@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { totpSchema, type TotpFormValues } from "../schema"
@@ -13,10 +14,23 @@ export function Verify2FAForm({ onSubmit, isSubmitting, errorMessage }: Verify2F
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<TotpFormValues>({
     resolver: zodResolver(totpSchema),
   })
+
+  const totpValue = watch("totp_code", "")
+
+  // Auto-submit when exactly 6 digits entered
+  useEffect(() => {
+    if (totpValue?.length === 6 && !isSubmitting) {
+      handleSubmit(onSubmit)()
+    }
+  }, [totpValue, isSubmitting, handleSubmit, onSubmit])
+
+  const { onChange, ...restRegister } = register("totp_code")
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
@@ -28,9 +42,17 @@ export function Verify2FAForm({ onSubmit, isSubmitting, errorMessage }: Verify2F
           id="totp_code"
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           maxLength={6}
           autoComplete="one-time-code"
-          {...register("totp_code")}
+          autoFocus
+          {...restRegister}
+          onChange={(e) => {
+            // Strip non-numeric characters before passing to RHF
+            const digits = e.target.value.replace(/\D/g, "")
+            e.target.value = digits
+            onChange(e)
+          }}
           className="rounded-lg border border-border bg-bg-2 px-3.5 py-2.5 text-center text-lg tracking-[0.5em] text-text-1 outline-none transition-colors focus:border-primary font-mono"
         />
         {errors.totp_code && (
