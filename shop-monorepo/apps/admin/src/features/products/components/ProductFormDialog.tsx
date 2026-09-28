@@ -26,11 +26,10 @@ interface ProductFormDialogProps {
   /** id محصول در حالت ویرایش; null یعنی حالت ساخت محصول جدید. */
   productId?: string | null
 }
-const [createdProductId, setCreatedProductId] = useState<string | null>(null)
 
 function buildDefaultValues(product?: Product | null): ProductFormValues {
   return {
-    category_id: product?.category?.id ?? (undefined as unknown as string),
+    category_id: product?.category?.id ?? '',
     name: product?.name ?? "",
     sku: product?.sku ?? "",
     short_description: product?.short_description ?? "",
@@ -58,13 +57,13 @@ function buildDefaultValues(product?: Product | null): ProductFormValues {
 export function ProductFormDialog({ open, onOpenChange, productId = null }: ProductFormDialogProps) {
   const isEdit = productId !== null
   const [formError, setFormError] = useState<string | null>(null)
-  const [createdProductId, setCreatedProductId] = useState<number | null>(null)
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null)
 
   const effectiveProductId = productId ?? createdProductId
   const isPersisted = effectiveProductId !== null
 
   const { data: product, isLoading: isLoadingProduct } = useProduct(open ? effectiveProductId : null)
-  const { data: categories } = useCategories()
+  const { data: categories, isError: isCategoriesError } = useCategories()
   // memoize شد تا buildCategoryOptions فقط وقتی categories واقعاً تغییر کرد
   // دوباره محاسبه بشه، نه در هر رندر فرم (تایپ کردن، تغییر هر فیلد دیگه و...)
   const categoryOptions = useMemo(() => buildCategoryOptions(categories ?? []), [categories])
@@ -72,7 +71,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
   const createMutation = useCreateProduct()
   const updateMutation = useUpdateProduct()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
-
+  
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: buildDefaultValues(null),
@@ -170,7 +169,7 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
             {isEdit
               ? `در حال ویرایش «${product?.name ?? "..."}»`
               : isPersisted
-                ? "محصول ساخته شد. حالا می‌تونی عکس/ویدیو اضافه کنی یا ویرایش‌های بیشتر اعمال کنی."
+                ? "✓ محصول ذخیره شد — تغییرات جدید به‌صورت ویرایش اعمال می‌شن."
                 : "اطلاعات محصول جدید رو وارد کن. بعد از ثبت اولیه، می‌تونی عکس/ویدیو اضافه کنی."}
           </DialogDescription>
         </DialogHeader>
@@ -188,6 +187,12 @@ export function ProductFormDialog({ open, onOpenChange, productId = null }: Prod
                 <span>{formError}</span>
               </div>
             )}
+            {isCategoriesError && (
+                <div className="flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>بارگذاری دسته‌بندی‌ها ناموفق بود. صفحه را رفرش کنید.</span>
+                </div>
+              )}
 
             <ProductBasicInfoFields form={form} categoryOptions={categoryOptions} />
             <ProductPricingFields form={form} currentTomanPrice={isPersisted ? product?.price ?? null : null} />

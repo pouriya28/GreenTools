@@ -15,7 +15,7 @@ export function ProductFilters({ filters, categoryOptions, onChange }: ProductFi
     <div className="flex flex-wrap items-center gap-2">
       <Select
         value={filters.category_id ? String(filters.category_id) : ALL}
-        onValueChange={(value) => onChange({ category_id: value === ALL ? undefined : Number(value) })}
+        onValueChange={(value) => onChange({ category_id: value === ALL ? undefined : value })}
       >
         <SelectTrigger className="w-40">
           <SelectValue placeholder="دسته‌بندی" />

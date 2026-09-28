@@ -1,7 +1,7 @@
 import type { Category } from "./types"
-
+import type { Ulid } from "@/shared/types/apiResponse"
 export interface ParentOption {
-  id: number
+  id: Ulid
   name: string
   depth: number
 }

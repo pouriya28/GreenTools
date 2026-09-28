@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const categorySchema = z.object({
-  parent_id: z.number().nullable(),
+  parent_id: z.string().nullable(),
   name: z.string().min(2, "نام باید حداقل ۲ کاراکتر باشد").max(150),
   description: z.string().max(2000).nullable().optional(),
   icon: z.string().max(100).nullable().optional(),

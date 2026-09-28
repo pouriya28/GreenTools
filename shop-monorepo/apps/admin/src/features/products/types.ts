@@ -1,5 +1,5 @@
 import type { Category } from "@/features/categories/types"
-
+import type { Ulid } from '@/shared/types/apiResponse'
 export type DiscountType = "percent" | "fixed"
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder"
 export type PurchaseRequirement =
@@ -50,7 +50,7 @@ export interface AttributeOption {
 
 // شکل کامل، خروجی ProductResource — برای دیالوگ ویرایش
 export interface Product {
-  id: string // ULID
+  id: Ulid
   name: string
   slug: string
   sku: string
@@ -92,7 +92,7 @@ export interface Product {
 
 // شکل خلاصه، خروجی ProductListResource — برای جدول/کارت لیست
 export interface ProductListItem {
-  id: string // ULID
+  id: Ulid
   name: string
   slug: string
   sku: string
@@ -121,7 +121,7 @@ export interface ProductAttributeInput {
 
 // دقیقاً منطبق با StoreProductRequest/UpdateProductRequest
 export interface ProductPayload {
-  category_id: string // ULID
+  category_id: Ulid
   name: string
   sku?: string | null
   short_description?: string | null

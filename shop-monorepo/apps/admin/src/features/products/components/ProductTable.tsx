@@ -13,7 +13,7 @@ interface ProductTableProps {
   onEdit: (product: ProductListItem) => void
   onDeleteRequest: (product: ProductListItem) => void
   onToggleFeatured: (product: ProductListItem) => void
-  togglingFeaturedId: number | null
+  togglingFeaturedId: string | null
 }
 
 export function ProductTable({
@@ -159,7 +159,13 @@ export function ProductTable({
             </div>
 
             <div className="flex items-center justify-end gap-2 border-t border-border pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => onToggleFeatured(product)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onToggleFeatured(product)}
+                aria-label={product.is_featured ? "حذف از ویژه‌ها" : "افزودن به ویژه‌ها"}
+              >
                 <Star className="h-4 w-4" fill={product.is_featured ? "currentColor" : "none"} />
                 ویژه
               </Button>

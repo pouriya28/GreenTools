@@ -2,7 +2,7 @@ import type { Category } from "@/features/categories/types"
 import type { PurchaseRequirement, StockStatus } from "./types"
 
 export interface CategoryOption {
-  id: number
+  id: string
   name: string
   depth: number
 }
