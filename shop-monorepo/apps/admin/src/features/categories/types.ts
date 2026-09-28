@@ -1,6 +1,7 @@
+import type { Ulid } from '@/shared/types/apiResponse'
 export interface Category {
-  id: number
-  parent_id: number | null
+  id: Ulid
+  parent_id: Ulid | null
   name: string
   slug: string
   description: string | null
@@ -14,7 +15,7 @@ export interface Category {
 }
 
 export interface CategoryPayload {
-  parent_id: number | null
+  parent_id: Ulid | null
   name: string
   description?: string | null
   icon?: string | null

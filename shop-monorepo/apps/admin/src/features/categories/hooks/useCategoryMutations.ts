@@ -3,7 +3,7 @@ import { createCategory, updateCategory, deleteCategory, restoreCategory, forceD
 import type { CategoryPayload } from "../types"
 import { categoriesQueryKey } from "./useCategories"
 import { trashedCategoriesQueryKey } from "./useTrashedCategories"
-
+import type { Ulid } from "@/shared/types/apiResponse"
 export function useCreateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -17,7 +17,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: Partial<CategoryPayload> }) =>
+    mutationFn: ({ id, payload }: { id: Ulid; payload: Partial<CategoryPayload> }) =>
       updateCategory(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: categoriesQueryKey })
@@ -28,7 +28,7 @@ export function useUpdateCategory() {
 export function useDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => deleteCategory(id),
+    mutationFn: (id: Ulid) => deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: categoriesQueryKey })
       // با حذف (سافت) یه دسته، تازه وارد سطل‌زباله میشه؛ اگه یوزر همون لحظه
@@ -41,7 +41,7 @@ export function useDeleteCategory() {
 export function useRestoreCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => restoreCategory(id),
+    mutationFn: (id: Ulid) => restoreCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: categoriesQueryKey })
       queryClient.invalidateQueries({ queryKey: trashedCategoriesQueryKey })
@@ -52,7 +52,7 @@ export function useRestoreCategory() {
 export function useForceDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => forceDeleteCategory(id),
+    mutationFn: (id: Ulid) => forceDeleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trashedCategoriesQueryKey })
     },

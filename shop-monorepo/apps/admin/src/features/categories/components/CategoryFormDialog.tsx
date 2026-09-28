@@ -154,7 +154,7 @@ export function CategoryFormDialog({
                 <Select
                   value={field.value === null ? ROOT_PARENT_VALUE : String(field.value)}
                   onValueChange={(value) =>
-                    field.onChange(value === ROOT_PARENT_VALUE ? null : Number(value))
+                    field.onChange(value === ROOT_PARENT_VALUE ? null : value)
                   }
                 >
                   <SelectTrigger id="parent_id">

@@ -9,7 +9,7 @@ export type PurchaseRequirement =
   | "restricted"
 
 export interface ProductImage {
-  id: Ulid
+  id: number
   url: string
   alt_text: string | null
   is_primary: boolean
@@ -17,7 +17,7 @@ export interface ProductImage {
 }
 
 export interface ProductVideo {
-  id: Ulid
+  id: number
   source_type: "upload" | "youtube" | "aparat" | "external"
   url: string
   external_id: string | null
