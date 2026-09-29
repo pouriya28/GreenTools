@@ -66,7 +66,7 @@ describe('categoriesApi', () => {
       let captured: unknown
       server.use(
         http.post(BASE, async ({ request }) => {
-          captured = await request.json()
+          captured = await request.clone().json()
           return HttpResponse.json({ data: mockCategory }, { status: 201 })
         }),
       )
