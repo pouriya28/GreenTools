@@ -49,5 +49,6 @@ Route::prefix('v1')->group(base_path('routes/api/v1/shipping.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/store-status.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/comments.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/orders.php'));
+Route::prefix('v1')->group(base_path('routes/api/v1/notifications.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/wishlist.php'));
 Route::prefix('v1')->group(base_path('routes/api/v1/attributes.php'));
