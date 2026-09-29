@@ -122,7 +122,7 @@ export function ExchangeRateStatusCard({ onBatchCreated }: ExchangeRateStatusCar
         }
         confirmLabel="تایید نهایی"
         isBusy={isBusy}
-        errorMessage={null}
+        errorMessage={actionError}
         onConfirm={handleConfirmPendingAction}
       />
     </div>
