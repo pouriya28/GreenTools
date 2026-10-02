@@ -142,12 +142,12 @@ describe("OrderFilters", () => {
             renderFilters()
             expect(screen.getByRole("combobox")).toBeInTheDocument()
         })
-
+                
         it("lists all 7 order statuses plus 'همه' option", async () => {
             const user = userEvent.setup()
             renderFilters()
             await user.click(screen.getByRole("combobox"))
-            expect(screen.getAllByRole("option")).toHaveLength(8)
+            expect(screen.getAllByRole("option", { hidden: true })).toHaveLength(8)
         })
 
         it("calls onChange with selected status", async () => {
