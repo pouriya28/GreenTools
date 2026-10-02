@@ -53,6 +53,33 @@ describe('sanitizeDescriptionHtml', () => {
       expect(result).not.toContain('<iframe>')
     })
 
+    it('strips <iframe srcdoc>', () => {
+      const result = sanitizeDescriptionHtml('<iframe srcdoc="<script>alert(1)</script>"></iframe>')
+      expect(result).not.toContain('<iframe>')
+      expect(result).not.toContain('srcdoc')
+    })
+
+    it('strips <object>', () => {
+      const result = sanitizeDescriptionHtml('<object data="malware.swf" type="application/x-shockwave-flash"></object>')
+      expect(result).not.toContain('<object>')
+    })
+
+    it('strips <embed>', () => {
+      const result = sanitizeDescriptionHtml('<embed src="evil.swf" type="application/x-shockwave-flash">')
+      expect(result).not.toContain('<embed>')
+    })
+
+    it('strips <svg> with onload', () => {
+      const result = sanitizeDescriptionHtml('<svg onload="alert(1)"><circle/></svg>')
+      expect(result).not.toContain('<svg>')
+      expect(result).not.toContain('onload')
+    })
+
+    it('strips <base> tag (could hijack relative URLs)', () => {
+      const result = sanitizeDescriptionHtml('<base href="https://evil.com/"><p>محتوا</p>')
+      expect(result).not.toContain('<base>')
+    })
+
     it('strips <img>', () => {
       const result = sanitizeDescriptionHtml('<img src="x" onerror="alert(1)">')
       expect(result).not.toContain('<img>')
@@ -80,14 +107,40 @@ describe('sanitizeDescriptionHtml', () => {
       expect(result).not.toContain('onerror')
     })
 
+    it('strips style attribute (CSS expression / url() injection)', () => {
+      const result = sanitizeDescriptionHtml('<p style="background:url(javascript:alert(1))">متن</p>')
+      expect(result).not.toContain('style=')
+    })
+
+    it('strips class attribute', () => {
+      const result = sanitizeDescriptionHtml('<p class="foo">متن</p>')
+      expect(result).not.toContain('class=')
+    })
+
     it('strips javascript: protocol in href', () => {
       const result = sanitizeDescriptionHtml('<a href="javascript:alert(1)">کلیک</a>')
       expect(result).not.toContain('javascript:')
     })
 
-    it('strips data: URIs', () => {
+    it('strips vbscript: protocol in href', () => {
+      const result = sanitizeDescriptionHtml('<a href="vbscript:MsgBox(1)">کلیک</a>')
+      expect(result).not.toContain('vbscript:')
+    })
+
+    it('strips data: URIs in href', () => {
       const result = sanitizeDescriptionHtml('<a href="data:text/html,<script>alert(1)</script>">لینک</a>')
       expect(result).not.toContain('data:')
+    })
+
+    it('strips data: URIs even with uppercase DATA:', () => {
+      const result = sanitizeDescriptionHtml('<a href="DATA:text/html,<script>alert(1)</script>">لینک</a>')
+      expect(result.toLowerCase()).not.toContain('data:')
+    })
+
+    it('strips entity-encoded javascript: in href', () => {
+      // &#106;avascript: — DOMPurify decodes entities before checking
+      const result = sanitizeDescriptionHtml('<a href="&#106;avascript:alert(1)">کلیک</a>')
+      expect(result).not.toContain('javascript:')
     })
   })
 
@@ -120,6 +173,14 @@ describe('sanitizeDescriptionHtml', () => {
       const result = sanitizeDescriptionHtml('<a href="https://example.com" title="راهنما">لینک</a>')
       expect(result).toContain('href="https://example.com"')
       expect(result).toContain('title="راهنما"')
+    })
+
+    it('applies security hook even when called multiple times (idempotent)', () => {
+      // Calling sanitize multiple times should not duplicate or lose attributes
+      sanitizeDescriptionHtml('<a href="https://example.com">اول</a>')
+      const result = sanitizeDescriptionHtml('<a href="https://example.com">دوم</a>')
+      expect(result).toContain('target="_blank"')
+      expect(result).toContain('nofollow')
     })
   })
 })

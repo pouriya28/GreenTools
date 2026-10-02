@@ -15,21 +15,23 @@ const ALLOWED_TAGS = [
 
 const ALLOWED_ATTR = ['href', 'title']
 
-let linkSecurityHookInstalled = false
-
 // Forces safe link attributes regardless of what input contained.
 // Using a hook (not ALLOWED_ATTR) so target/rel are always overwritten,
 // never left up to user-supplied values.
-function ensureLinkSecurityHook() {
-  if (linkSecurityHookInstalled) return
-  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (node.tagName === 'A') {
-      node.setAttribute('target', '_blank')
-      node.setAttribute('rel', 'nofollow noopener noreferrer')
-    }
-  })
-  linkSecurityHookInstalled = true
+//
+// NOTE: Do NOT use a module-level boolean guard (linkSecurityHookInstalled).
+// Vite HMR re-executes modules but DOMPurify keeps its own hook registry —
+// the flag would say "installed" while DOMPurify lost the hook after reload.
+// DOMPurify deduplicates hooks by reference so adding the same named function
+// twice is harmless.
+function linkSecurityHook(node: Element) {
+  if (node.tagName === 'A') {
+    node.setAttribute('target', '_blank')
+    node.setAttribute('rel', 'nofollow noopener noreferrer')
+  }
 }
+
+DOMPurify.addHook('afterSanitizeAttributes', linkSecurityHook)
 
 /**
  * Front-end sanitization for product description/short_description.
@@ -38,10 +40,12 @@ function ensureLinkSecurityHook() {
  */
 export function sanitizeDescriptionHtml(html: string): string {
   if (!html) return ''
-  ensureLinkSecurityHook()
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
+    // Ensures consistent output shape regardless of input structure.
+    FORCE_BODY: true,
   })
 }
 
