@@ -18,7 +18,7 @@ import "../styles/shipping-label.css"
 export default function PrintLabelsPage() {
 	const navigate = useNavigate()
 	const { data, isLoading, isError } = useOrders({ status: "packed", per_page: 50, page: 1 })
-	const [selectedIds, setSelectedIds] = useState<number[]>([])
+	const [selectedIds, setSelectedIds] = useState<string[]>([])
 	const [senderAddressId, setSenderAddressId] = useState<number | null>(null)
 	const [paperSize, setPaperSize] = useState<PaperSize>("a4")
 	const [labelSize, setLabelSize] = useState<LabelSize>("10x15")
@@ -33,7 +33,7 @@ export default function PrintLabelsPage() {
 		setSelectedIds(allSelected ? [] : orders.map((o) => o.id))
 	}
 
-	function toggleOne(id: number) {
+	function toggleOne(id: string) {
 		setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 	}
 

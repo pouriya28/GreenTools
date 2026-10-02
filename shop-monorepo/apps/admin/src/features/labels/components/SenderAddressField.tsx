@@ -90,6 +90,7 @@ export function SenderAddressField({ value, onChange }: SenderAddressFieldProps)
                         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                             <Input
                                 placeholder="عنوان (مثلاً: انبار مرکزی)"
+                                maxLength={100}
                                 value={form.label}
                                 onChange={(e) => updateField("label", e.target.value)}
                                 required
@@ -97,12 +98,14 @@ export function SenderAddressField({ value, onChange }: SenderAddressFieldProps)
                             <Input
                                 placeholder="نام فرستنده"
                                 value={form.sender_name}
+                                maxLength={100}
                                 onChange={(e) => updateField("sender_name", e.target.value)}
                                 required
                             />
                             <Input
                                 placeholder="شماره تماس فرستنده"
                                 value={form.sender_phone}
+                                maxLength={11}
                                 onChange={(e) => updateField("sender_phone", e.target.value)}
                                 dir="ltr"
                                 required
@@ -124,6 +127,7 @@ export function SenderAddressField({ value, onChange }: SenderAddressFieldProps)
                             <Input
                                 placeholder="آدرس کامل"
                                 value={form.address_line}
+                                maxLength={300}
                                 onChange={(e) => updateField("address_line", e.target.value)}
                                 required
                             />
@@ -131,16 +135,19 @@ export function SenderAddressField({ value, onChange }: SenderAddressFieldProps)
                                 <Input
                                     placeholder="پلاک"
                                     value={form.plaque ?? ""}
+                                    maxLength={7}
                                     onChange={(e) => updateField("plaque", e.target.value)}
                                 />
                                 <Input
                                     placeholder="واحد"
                                     value={form.unit ?? ""}
+                                    maxLength={5}
                                     onChange={(e) => updateField("unit", e.target.value)}
                                 />
                                 <Input
                                     placeholder="کدپستی"
                                     value={form.postal_code}
+                                    maxLength={10}
                                     onChange={(e) => updateField("postal_code", e.target.value)}
                                     dir="ltr"
                                 />

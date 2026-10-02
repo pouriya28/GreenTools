@@ -44,7 +44,7 @@ export type ShippingLabelSheet = {
 }
 
 export type GenerateShippingLabelsPayload = {
-	order_ids: number[]
+	order_ids: string[]
 	status?: string
 	sender_address_id: number
 	paper_size: PaperSize
