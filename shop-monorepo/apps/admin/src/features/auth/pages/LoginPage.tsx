@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AxiosError } from "axios"
 import { loginRequest, verify2faRequest } from "../api/authApi"
@@ -18,6 +18,17 @@ export default function LoginPage() {
   const [tempToken, setTempToken] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [lockoutSeconds, setLockoutSeconds] = useState(0)
+
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return
+
+    const timer = window.setInterval(() => {
+      setLockoutSeconds((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [lockoutSeconds])
 
   function handleSuccess(data: ApiEnvelope<TokenData>) {
     setSession(data.data.access_token, data.data.user)
@@ -25,8 +36,11 @@ export default function LoginPage() {
   }
 
   async function handleLogin(values: LoginFormValues) {
+    if (lockoutSeconds > 0) return
+
     setIsSubmitting(true)
     setErrorMessage(null)
+
     try {
       const result = await loginRequest(values)
 
@@ -38,10 +52,19 @@ export default function LoginPage() {
 
       handleSuccess(result as ApiEnvelope<TokenData>)
     } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 423) {
+        const retryAfter = Number(err.response.data?.retry_after)
+
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setLockoutSeconds(Math.ceil(retryAfter))
+        }
+      }
+
       const message =
         err instanceof AxiosError && err.response?.data?.message
           ? err.response.data.message
           : "خطایی رخ داد. دوباره تلاش کنید."
+
       setErrorMessage(message)
     } finally {
       setIsSubmitting(false)
@@ -50,8 +73,10 @@ export default function LoginPage() {
 
   async function handleVerify2FA(values: TotpFormValues) {
     if (!tempToken) return
+
     setIsSubmitting(true)
     setErrorMessage(null)
+
     try {
       const result = await verify2faRequest(values.totp_code, tempToken)
       handleSuccess(result)
@@ -60,6 +85,7 @@ export default function LoginPage() {
         err instanceof AxiosError && err.response?.data?.message
           ? err.response.data.message
           : "کد وارد شده نامعتبر است."
+
       setErrorMessage(message)
     } finally {
       setIsSubmitting(false)
@@ -67,11 +93,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg-0 px-4" dir="rtl">
+    <div
+      className="flex min-h-screen items-center justify-center bg-bg-0 px-4"
+      dir="rtl"
+    >
       <div className="w-full max-w-sm rounded-2xl border border-border bg-bg-1 p-8 shadow-2xl">
         <h1 className="mb-1 text-xl font-bold text-text-1">
           {step === "login" ? "ورود به پنل ادمین" : "تایید دو مرحله‌ای"}
         </h1>
+
         <p className="mb-6 text-sm text-text-3">
           {step === "login"
             ? "با ایمیل یا نام کاربری خود وارد شوید"
@@ -83,6 +113,7 @@ export default function LoginPage() {
             onSubmit={handleLogin}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
+            lockoutSeconds={lockoutSeconds}
           />
         ) : (
           <Verify2FAForm

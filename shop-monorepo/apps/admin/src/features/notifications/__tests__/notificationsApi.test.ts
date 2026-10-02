@@ -7,8 +7,8 @@ import {
   markAllNotificationsRead,
 } from '../api/notificationsApi'
 import type { NotificationsResponse } from '../types'
+const BASE = "http://localhost:8000/api/v1/admin/notifications"
 
-const BASE = '/admin/notifications'
 
 const mockNotification = {
   id: 'notif-uuid-001',

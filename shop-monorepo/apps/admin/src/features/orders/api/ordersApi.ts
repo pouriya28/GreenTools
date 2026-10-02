@@ -10,7 +10,7 @@ export async function fetchOrders(filters: OrderListFilters): Promise<PaginatedR
 	return envelope.data
 }
 
-export async function fetchOrder(id: number): Promise<OrderDetail> {
+export async function fetchOrder(id: string): Promise<OrderDetail> {
 	const { data: envelope } = await api.get<ApiEnvelope<OrderDetail>>(`/admin/orders/${id}`)
 	if (!envelope.success) throw envelope
 	return envelope.data

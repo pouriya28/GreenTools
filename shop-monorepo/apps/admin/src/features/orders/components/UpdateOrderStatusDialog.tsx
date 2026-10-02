@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState , useEffect} from "react"
 import { Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,9 @@ interface UpdateOrderStatusDialogProps {
 export function UpdateOrderStatusDialog({ order, open, onOpenChange }: UpdateOrderStatusDialogProps) {
 	const { updateStatus } = useOrderMutations()
 	const [nextStatus, setNextStatus] = useState<string>("")
-
+	useEffect(() => {
+		setNextStatus("")
+	}, [order?.id])
 	if (!order) return null
 
 	const allowedNextStatuses = ORDER_STATUS_TRANSITIONS[order.status]

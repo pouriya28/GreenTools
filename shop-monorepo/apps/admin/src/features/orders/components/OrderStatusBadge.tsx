@@ -14,9 +14,10 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
 }
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-    return (
-        <Badge variant="outline" className={STATUS_STYLES[status]}>
-            {ORDER_STATUS_LABELS[status]}
-        </Badge>
-    )
+  const style = STATUS_STYLES[status] ?? "border-border bg-muted text-text-2"
+  return (
+    <Badge variant="outline" className={style}>
+      {ORDER_STATUS_LABELS[status] ?? status}
+    </Badge>
+  )
 }

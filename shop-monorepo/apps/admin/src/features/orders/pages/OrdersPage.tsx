@@ -13,7 +13,7 @@ const DEFAULT_FILTERS: OrderListFilters = { page: 1 }
 export default function OrdersPage() {
     const navigate = useNavigate()
     const [filters, setFilters] = useState<OrderListFilters>(DEFAULT_FILTERS)
-    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
+    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
     const { data, isLoading, isError, refetch, isFetching } = useOrders(filters)
 
     function handleFiltersChange(next: Partial<OrderListFilters>) {

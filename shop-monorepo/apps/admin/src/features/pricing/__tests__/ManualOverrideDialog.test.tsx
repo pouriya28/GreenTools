@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ManualOverrideDialog } from '../components/ManualOverrideDialog'
 
-const EXCHANGE_BASE = '/admin/exchange-rates'
+const EXCHANGE_BASE = 'http://localhost:8000/api/v1/admin/exchange-rates'
 
 const mockCurrentRate = { rate: '65000.0000', status: 'applied', source: 'manual_admin', fetched_at: null }
 const mockOverrideResult = { message: 'ok', exchange_rate_id: 1, batch_id: 'BATCH-001' }

@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NotificationBell } from '../components/NotificationBell'
 
-const BASE = '/admin/notifications'
+const BASE = 'http://localhost:8000/api/v1/admin/notifications'
 
 const mockNotification = {
   id: 'notif-uuid-001',

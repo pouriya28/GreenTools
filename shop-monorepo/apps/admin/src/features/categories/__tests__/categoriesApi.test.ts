@@ -12,7 +12,7 @@ import {
 } from '../api/categoriesApi'
 import type { Category } from '../types'
 
-const BASE = '/categories/admin'
+const BASE = 'http://localhost:8000/api/v1/categories/admin'
 
 const mockCategory: Category = {
   id: '01HXYZ1234567890ABCDEFGHIJ',

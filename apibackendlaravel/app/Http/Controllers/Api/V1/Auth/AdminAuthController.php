@@ -47,10 +47,14 @@ class AdminAuthController extends Controller
 
         // قفل حساب در صورت تلاش‌های ناموفق مکرر (فقط بعد از تایید رمز صحیح بررسی می‌شود)
         if ($user->locked_until && $user->locked_until->isFuture()) {
-            $minutesLeft = now()->diffInMinutes($user->locked_until) + 1;
+            $secondsLeft = max(
+                0,
+                now()->diffInSeconds($user->locked_until)
+            );
 
             return response()->json([
-                'message' => "حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است. لطفاً {$minutesLeft} دقیقه دیگر تلاش کنید.",
+                'message' => 'حساب شما به دلیل تلاش‌های ناموفق مکرر موقتاً قفل شده است.',
+                'retry_after' => $secondsLeft,
             ], 423);
         }
 

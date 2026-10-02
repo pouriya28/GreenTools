@@ -71,7 +71,7 @@ export interface OrderShipment {
 }
 
 export interface OrderDetail {
-	id: number
+	id: string
 	status: OrderStatus
 	total_amount: number
 	shipping_cost: number

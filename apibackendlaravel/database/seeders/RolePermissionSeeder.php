@@ -51,7 +51,7 @@ class RolePermissionSeeder extends Seeder
         // نقش admin به کاربری که ایمیلش در ADMIN_EMAIL تعریف شده اختصاص
         // داده می‌شود — به‌جای هاردکد کردن نام، تا این seeder در محیط‌های
         // مختلف (local/staging/production) بدون تغییر کد قابل اجرا باشد.
-        $adminEmail = env('ADMIN_ALERT_EMAIL');
+        $adminEmail = env('ADMIN_SEED_EMAIL');
 
         if (! $adminEmail) {
             throw new \RuntimeException('ADMIN_EMAIL env variable is not set; cannot assign the admin role.');

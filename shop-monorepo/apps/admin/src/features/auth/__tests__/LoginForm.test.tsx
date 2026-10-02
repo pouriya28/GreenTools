@@ -7,6 +7,7 @@ const defaultProps = {
   onSubmit: vi.fn(),
   isSubmitting: false,
   errorMessage: null,
+  lockoutSeconds: 0,
 }
 
 function setup(props = {}) {
