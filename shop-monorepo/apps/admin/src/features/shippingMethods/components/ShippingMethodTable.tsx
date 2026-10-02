@@ -58,8 +58,10 @@ export function ShippingMethodTable({ shippingMethods, onEdit, onDeleteRequest }
 							<TableCell className="text-text-2">{CALCULATION_TYPE_LABELS[method.calculation_type]}</TableCell>
 							<TableCell className="text-text-2">{formatToman(method.base_cost)}</TableCell>
 							<TableCell className="text-text-2">
-								{method.free_shipping_enabled
-									? `بالای ${formatToman(method.free_shipping_threshold ?? 0)}`
+								{method.free_shipping_enabled && method.free_shipping_threshold != null
+									? `بالای ${formatToman(method.free_shipping_threshold)}`
+									: method.free_shipping_enabled
+									? "فعال"
 									: "—"}
 							</TableCell>
 							<TableCell className="text-text-2">

@@ -109,7 +109,7 @@ export function ShippingMethodFormDialog({ open, onOpenChange, shippingMethod }:
 							<label className="text-sm text-text-2">کد (انگلیسی، یکتا)</label>
 							<Input
 								value={form.code}
-								onChange={(e) => patch({ code: e.target.value })}
+								onChange={(e) => patch({ code: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, "") })}
 								required
 								maxLength={32}
 								dir="ltr"
