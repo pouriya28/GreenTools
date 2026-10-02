@@ -76,14 +76,21 @@ export function StoreStatusToggle() {
 	}
 
 	return (
-		<button
-			type="button"
-			onClick={() => open.mutate()}
-			disabled={open.isPending}
-			className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm font-medium text-green-600 transition hover:bg-green-500/20 disabled:opacity-50"
-		>
-			<Power className="h-4 w-4" />
-			{open.isPending ? "در حال باز کردن…" : "باز کردن فروشگاه"}
-		</button>
+		<div className="flex flex-col gap-1">
+			<button
+				type="button"
+				onClick={() => open.mutate()}
+				disabled={open.isPending}
+				className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm font-medium text-green-600 transition hover:bg-green-500/20 disabled:opacity-50"
+			>
+				<Power className="h-4 w-4" />
+				{open.isPending ? "در حال باز کردن…" : "باز کردن فروشگاه"}
+			</button>
+			{open.isError && (
+				<p className="text-xs text-danger">
+					{open.error instanceof ApiError ? open.error.message : "خطا در باز کردن فروشگاه"}
+				</p>
+			)}
+		</div>
 	)
 }
