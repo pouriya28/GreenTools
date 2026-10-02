@@ -1,7 +1,7 @@
 // src/features/comments/api/commentsAdminApi.ts
 import { api } from "@/shared/lib/axios"; // ⚠️ مسیر رو حدس زدم — پایین توضیح دادم
 import type { CommentAdminItem, CommentAdminListMeta } from "../types/CommentAdmin";
-
+import type { ApiEnvelope } from "@/shared/types/apiResponse"
 interface ApiEnvelope<T> {
   data: T;
 }

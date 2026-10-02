@@ -6,14 +6,21 @@ import { Button } from "@/components/ui/button";
 
 export function CommentModerationPage() {
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = usePendingComments(page);
+  const { data, isLoading, isError,refetch, isFetching} = usePendingComments(page);
 
   return (
     <div className="flex flex-col gap-4 p-4" dir="rtl">
       <h1 className="text-lg font-bold text-text-1">مدیریت نظرات</h1>
 
       {isLoading && <p className="text-sm text-text-2">در حال بارگذاری...</p>}
-      {isError && <p className="text-sm text-danger">خطا در دریافت نظرات.</p>}
+      {isError && (
+        <div className="flex flex-col items-center gap-2 py-8">
+          <p className="text-sm text-danger">خطا در دریافت نظرات.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            تلاش دوباره
+          </Button>
+        </div>
+      )}
 
       {data && (
         <>

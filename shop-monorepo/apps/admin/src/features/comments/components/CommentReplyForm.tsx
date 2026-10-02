@@ -46,6 +46,7 @@ export function CommentReplyForm({ commentableType, commentableId, parentId, onD
       <textarea
         {...register("body")}
         rows={2}
+        maxLength={2000}
         placeholder="پاسخ پشتیبانی..."
         className="w-full resize-none rounded-lg border border-border bg-bg-1 px-3 py-2 text-sm text-text-1"
       />
