@@ -39,9 +39,9 @@ class UpdateCategoryRequest extends FormRequest
                         return;
                     }
 
-                    $parentId = (int) $value;
+                    
 
-                    if ($category->hasDescendant($parentId)) {
+                    if ($category->hasDescendant($value)) {
                         $fail(
                             'نمی‌توان یکی از زیردسته‌های همین دسته را به‌عنوان والد انتخاب کرد.'
                         );

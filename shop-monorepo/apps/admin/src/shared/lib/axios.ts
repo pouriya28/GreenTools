@@ -113,7 +113,9 @@ api.interceptors.response.use(
     isRefreshing = true
 
     try {
-      const { data } = await api.post<ApiEnvelope<TokenData>>("/auth/refresh")
+      const { data } = await api.post<ApiEnvelope<TokenData>>("/auth/refresh", null, {
+        timeout: 10_000, // prevent hanging forever if refresh endpoint is unreachable
+      })
 
       // Validate shape before trusting the response
       if (!isValidTokenData(data)) {

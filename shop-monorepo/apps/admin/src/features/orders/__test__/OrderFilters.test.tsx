@@ -162,7 +162,7 @@ describe("OrderFilters", () => {
             const user = userEvent.setup()
             const { onChange } = renderFilters({ status: "paid" })
             await user.click(screen.getByRole("combobox"))
-            await user.click(screen.getByRole("option", { name: "همه وضعیت‌ها" }))
+            await user.click(screen.getByRole("option", { name: "همه وضعیت‌ها" , hidden: true }))
             expect(onChange).toHaveBeenCalledWith({ status: undefined })
         })
     })

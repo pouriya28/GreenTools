@@ -14,7 +14,7 @@ function flatten(categories: Category[], depth: number): ParentOption[] {
 }
 
 /** همه‌ی id های نوادگان یه دسته (بر اساس عمقی که بک‌اند eager-load کرده). */
-function collectDescendantIds(category: Category): Set<number> {
+function collectDescendantIds(category: Category): Set<Ulid> {
   const ids = new Set<number>()
 
   function walk(node: Category) {
